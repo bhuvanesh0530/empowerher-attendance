@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>EmpowerHer Self-Attendance</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+    .app-bar {
+      background: linear-gradient(135deg, #0C447C 0%, #185FA5 55%, #378ADD 100%);
+      color: white; padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 17px; font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .container { max-width: 480px; margin: 0 auto; padding: 16px; }
+    .info-card {
+      background: white; border-radius: 12px; padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .avatar {
+      width: 48px; height: 48px; background: #e8f4fd; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .member-name { font-weight: 700; font-size: 16px; color: #1a1a1a; }
+    .member-uid  { font-size: 13px; color: #666; margin-top: 2px; }
+    .member-sub  { font-size: 12px; color: #0b78ba; font-weight: 600; margin-top: 2px; }
+    .trainer-badge {
+      background: #e8f4fd; border-radius: 8px; padding: 8px 12px;
+      font-size: 13px; color: #0C447C; font-weight: 600;
+      margin-bottom: 14px; display: none; align-items: center; gap: 8px;
+    }
+    .trainer-badge.show { display: flex; }
+    .trainer-badge .change-link {
+      margin-left: auto; font-size: 12px; color: #0b78ba;
+      text-decoration: underline; cursor: pointer; font-weight: 600;
+    }
+    .step-card {
+      background: white; border-radius: 12px; padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 14px;
+      display: none;
+    }
+    .step-card.active { display: block; }
+    .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .step-num {
+      width: 28px; height: 28px; background: #0b78ba; color: white;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px; flex-shrink: 0;
+    }
+    .step-title { font-weight: 600; font-size: 15px; color: #333; }
+    .qr-placeholder {
+      width: 100%; height: 240px; background: #f8fbff;
+      border: 2px dashed #0b78ba; border-radius: 8px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+    }
+    .qr-placeholder p { color: #999; font-size: 13px; }
+    .qr-wrap {
+      position: relative; width: 100%; height: 260px;
+      background: #000; border-radius: 8px; overflow: hidden; display: none;
+    }
+    .qr-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .qr-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center; pointer-events: none;
+    }
+    .qr-frame {
+      width: 200px; height: 200px; border: 3px solid #fff; border-radius: 12px;
+      box-shadow: 0 0 0 2000px rgba(0,0,0,0.45); position: relative; overflow: hidden;
+    }
+    .qr-line {
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: #0b78ba; animation: scan 1.8s linear infinite;
+    }
+    @keyframes scan { 0%{top:0} 100%{top:calc(100% - 3px)} }
+    .qr-hint {
+      position: absolute; bottom: 10px; width: 100%;
+      text-align: center; color: rgba(255,255,255,0.85); font-size: 12px;
+    }
+    .scan-result {
+      background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px;
+      padding: 10px 14px; display: none; align-items: center; gap: 8px; margin-top: 10px;
+    }
+    .scan-result.show { display: flex; }
+    .scan-result span { color: #2e7d32; font-weight: 600; font-size: 14px; }
+    .type-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; margin-top: 6px;
+    }
+    .type-normal { background: #e3f2fd; color: #1565c0; }
+    .type-sdtc   { background: #e8f5e9; color: #2e7d32; }
+    .type-value  { background: #fff3e0; color: #e65100; }
+    .value-input-box { margin-top: 10px; display: none; }
+    .value-input-box label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; }
+    .value-input-box input {
+      width: 100%; padding: 12px; border: 2px solid #0b78ba;
+      border-radius: 8px; font-size: 16px; font-weight: 600; color: #0C447C; outline: none;
+    }
+    .loc-status {
+      padding: 10px 14px; border-radius: 8px; font-size: 14px;
+      background: #fff3e0; border: 1px solid #ff9800; color: #e65100;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .loc-status.success { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
+    #camera-preview {
+      width: 100%; border-radius: 8px; background: #000;
+      max-height: 220px; object-fit: cover; display: none;
+    }
+    #photo-preview {
+      width: 100%; border-radius: 8px; max-height: 220px;
+      object-fit: cover; display: none; border: 2px solid #4caf50;
+    }
+    .btn {
+      padding: 11px 18px; border: none; border-radius: 8px; cursor: pointer;
+      font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px;
+    }
+    .btn-primary   { background: #0b78ba; color: white; }
+    .btn-secondary { background: #e0e0e0; color: #333; }
+    .btn-warning   { background: #ff9800; color: white; }
+    .btn-success {
+      background: #2e7d32; color: white; width: 100%;
+      justify-content: center; font-size: 16px; padding: 14px;
+      border: none; cursor: pointer; border-radius: 8px; margin-top: 4px; display: none;
+    }
+    .btn-success.show { display: flex; }
+    .btn-success:disabled { background: #bdbdbd; cursor: not-allowed; }
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .camera-controls { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .error-box {
+      background: #ffebee; border: 1px solid #ef9a9a; border-radius: 8px;
+      padding: 12px 14px; margin-top: 10px; display: none;
+    }
+    .error-box p { color: #c62828; font-size: 13px; margin-bottom: 8px; }
+    .manual-row { display: none; margin-top: 10px; gap: 8px; flex-direction: row; }
+    .manual-row input {
+      flex: 1; padding: 10px 12px; border: 1px solid #ccc;
+      border-radius: 8px; font-size: 14px;
+    }
+    .manual-row button {
+      padding: 10px 14px; background: #0b78ba; color: white;
+      border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .trainer-box label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; }
+    .trainer-box input {
+      width: 100%; padding: 12px; border: 2px solid #0b78ba;
+      border-radius: 8px; font-size: 15px; outline: none; margin-bottom: 10px;
+    }
+    .progress-bar {
+      width: 100%; height: 6px; background: #e0e0e0;
+      border-radius: 3px; margin-top: 10px; display: none;
+    }
+    .progress-fill { height: 100%; background: #0b78ba; border-radius: 3px; transition: width 0.3s; }
+    .status-msg {
+      text-align: center; padding: 12px; border-radius: 8px; font-weight: 600;
+      display: none; margin-top: 12px; font-size: 13px;
+    }
+    .status-msg.success {
+      display: block; background: white; color: #2e7d32;
+      padding: 40px 24px; border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.10); margin-top: 24px;
+    }
+    .status-msg.error { display: block; background: #ffebee; color: #c62828; }
+    .loading-banner {
+      background: #e3f2fd; border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; color: #0C447C; font-weight: 600;
+      margin-bottom: 14px; text-align: center; display: none;
+    }
+    .loading-banner.show { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="app-bar">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+    <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+    <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+    <line x1="3" y1="12" x2="21" y2="12"/>
+  </svg>
+  EmpowerHer Self-Attendance
+</div>
+
+<div class="container">
+
+  <!-- Beneficiary info card — pre-filled from UID in URL -->
+  <div class="info-card" id="info-card">
+    <div class="avatar">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0b78ba" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+    <div>
+      <div class="member-name" id="display-name">Loading...</div>
+      <div class="member-uid"  id="display-uid">Please wait...</div>
+      <div class="member-sub"  id="display-extra"></div>
+    </div>
+  </div>
+
+  <div class="loading-banner" id="loading-banner">⏳ Loading your details...</div>
+
+  <!-- Trainer badge — shown after step 0 -->
+  <div class="trainer-badge" id="trainer-badge">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0C447C" stroke-width="2">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+    <span id="trainer-badge-text">Trainer: —</span>
+    <span class="change-link" onclick="changeTrainer()">Change</span>
+  </div>
+
+  <!-- ── STEP 0: TRAINER NAME ── -->
+  <div class="step-card active" id="card-trainer">
+    <div class="step-header">
+      <div class="step-num">0</div>
+      <div class="step-title">Enter Trainer Name</div>
+    </div>
+    <div class="trainer-box">
+      <label>Name of the trainer conducting today's session</label>
+      <input type="text" id="trainer-name-input" placeholder="Type trainer name here..."
+             onkeydown="if(event.key==='Enter') confirmTrainer()"/>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;"
+            onclick="confirmTrainer()">✔ Confirm &amp; Start</button>
+  </div>
+
+  <!-- ── STEP 1: TRAINING QR ── -->
+  <div class="step-card" id="card-training">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">Scan Training QR Code</div>
+    </div>
+    <div class="qr-placeholder" id="trn-placeholder">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0b78ba" stroke-width="1.5">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+        <rect x="5" y="5" width="3" height="3" fill="#0b78ba"/>
+        <rect x="16" y="5" width="3" height="3" fill="#0b78ba"/>
+        <rect x="5" y="16" width="3" height="3" fill="#0b78ba"/>
+      </svg>
+      <p>Tap below to scan the training QR code</p>
+    </div>
+    <div class="qr-wrap" id="trn-qr-wrap">
+      <video class="qr-video" id="trn-video" autoplay playsinline muted></video>
+      <canvas id="trn-canvas" style="display:none;"></canvas>
+      <div class="qr-overlay"><div class="qr-frame"><div class="qr-line"></div></div></div>
+      <div class="qr-hint">Scan the training QR code</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-trn-scan"
+              onclick="startTrnScanner()" style="flex:1;justify-content:center;">
+        📷 Scan Training QR
+      </button>
+      <button class="btn btn-secondary" onclick="toggleManual('trn')">⌨️ Manual</button>
+    </div>
+    <div class="error-box" id="trn-error-box">
+      <p id="trn-error-text">Could not access camera.</p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-warning" onclick="retryScanner('trn')">🔄 Retry</button>
+        <button class="btn btn-secondary" onclick="toggleManual('trn')">⌨️ Manual</button>
+      </div>
+    </div>
+    <div class="manual-row" id="trn-manual-row">
+      <input type="text" id="trn-manual-input" placeholder="Type training name..."/>
+      <button onclick="setManual('trn')">✔</button>
+    </div>
+    <div class="scan-result" id="trn-scan-result">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <div>
+        <span id="trn-scan-text">Training scanned!</span><br>
+        <span class="type-badge" id="trn-type-badge"></span>
+      </div>
+    </div>
+    <div class="value-input-box" id="value-input-box">
+      <label>Enter the value / amount (₹)</label>
+      <input type="number" id="value-input" placeholder="e.g. 5000" oninput="checkSubmitReady()"/>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: SUB-TRAINING QR (only for SDTC) ── -->
+  <div class="step-card" id="card-subtraining">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title">Scan Sub-Training QR Code</div>
+    </div>
+    <div style="background:#e8f5e9;border-radius:8px;padding:10px 12px;
+                margin-bottom:10px;font-size:13px;color:#2e7d32;font-weight:600;">
+      📋 SDTC detected — scan sub-training QR (e.g. Aari / Tailoring)
+    </div>
+    <div class="qr-placeholder" id="sub-placeholder">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0b78ba" stroke-width="1.5">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+        <rect x="5" y="5" width="3" height="3" fill="#0b78ba"/>
+        <rect x="16" y="5" width="3" height="3" fill="#0b78ba"/>
+        <rect x="5" y="16" width="3" height="3" fill="#0b78ba"/>
+      </svg>
+      <p>Tap below to scan the sub-training QR</p>
+    </div>
+    <div class="qr-wrap" id="sub-qr-wrap">
+      <video class="qr-video" id="sub-video" autoplay playsinline muted></video>
+      <canvas id="sub-canvas" style="display:none;"></canvas>
+      <div class="qr-overlay"><div class="qr-frame"><div class="qr-line"></div></div></div>
+      <div class="qr-hint">Scan Aari / Tailoring QR code</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-sub-scan"
+              onclick="startSubScanner()" style="flex:1;justify-content:center;">
+        📷 Scan Sub-Training QR
+      </button>
+      <button class="btn btn-secondary" onclick="toggleManual('sub')">⌨️ Manual</button>
+    </div>
+    <div class="error-box" id="sub-error-box">
+      <p id="sub-error-text">Could not access camera.</p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-warning" onclick="retryScanner('sub')">🔄 Retry</button>
+        <button class="btn btn-secondary" onclick="toggleManual('sub')">⌨️ Manual</button>
+      </div>
+    </div>
+    <div class="manual-row" id="sub-manual-row">
+      <input type="text" id="sub-manual-input" placeholder="Type sub-training (e.g. Aari)..."/>
+      <button onclick="setManual('sub')">✔</button>
+    </div>
+    <div class="scan-result" id="sub-scan-result">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <span id="sub-scan-text">Sub-training scanned!</span>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: LOCATION ── -->
+  <div class="step-card" id="card-location">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">Capture Location</div>
+    </div>
+    <div class="loc-status" id="loc-status">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span id="loc-text">Requesting location...</span>
+    </div>
+  </div>
+
+  <!-- ── STEP 4: PHOTO ── -->
+  <div class="step-card" id="card-photo">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      <div class="step-title">Take Attendance Photo</div>
+    </div>
+    <video id="camera-preview" autoplay playsinline></video>
+    <img   id="photo-preview" alt="Captured photo">
+    <div class="camera-controls">
+      <button class="btn btn-primary"   id="btn-open-camera" onclick="openCamera()">📷 Open Camera</button>
+      <button class="btn btn-primary"   id="btn-capture"     onclick="capturePhoto()" style="display:none;">📸 Capture</button>
+      <button class="btn btn-secondary" id="btn-retake"      onclick="retakePhoto()"  style="display:none;">🔄 Retake</button>
+    </div>
+  </div>
+
+  <button class="btn-success" id="btn-submit" onclick="submitAttendance()" disabled>
+    ✅ Submit Attendance
+  </button>
+  <div class="progress-bar" id="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="status-msg" id="status-msg"></div>
+
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+// Same Web App URL as your trainer attendance form — no changes needed here
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyXBilYPA_Cg8ReLun1OYiDLxfiE46-gMfyDo_I8gk3fs-2PLmF8s166Hh6JTOyOB0R/exec";
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const state = {
+  trainerName:"",
+  uid:"", name:"", shg:"", cln:"",
+  trainingName:"", trainingType:"", subTraining:"", entValue:"",
+  lat:null, lng:null, timestamp:"", photoBase64:"", photoStream:null
+};
+const scanners = { trn:null, sub:null };
+
+// ── JSONP FETCH ───────────────────────────────────────────────────────────────
+function jsonpFetch(url) {
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*9999);
+    const s  = document.createElement("script");
+    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 25000);
+    window[cb] = d => { cleanup(); resolve(d); };
+    function cleanup() {
+      clearTimeout(t); delete window[cb];
+      if (s.parentNode) s.parentNode.removeChild(s);
+    }
+    s.onerror = () => { cleanup(); reject(new Error("Network error")); };
+    s.src = url + (url.includes("?")?"&":"?") + "callback=" + cb;
+    document.head.appendChild(s);
+  });
+}
+
+// ── ON LOAD ───────────────────────────────────────────────────────────────────
+window.onload = () => {
+  getLocation();
+  loadBeneficiaryFromURL();
+};
+
+function showCard(id) {
+  document.getElementById(id).classList.add("active");
+  setTimeout(() => {
+    document.getElementById(id).scrollIntoView({behavior:"smooth", block:"start"});
+  }, 100);
+}
+
+// ── LOAD BENEFICIARY FROM URL ─────────────────────────────────────────────────
+// Reads ?uid= from the URL (written by ID card script into Column P)
+// Fetches name, SHG, CLN from the Web App and shows in the info card
+async function loadBeneficiaryFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const uid    = params.get("uid") ? params.get("uid").trim().toUpperCase() : "";
+
+  if (!uid) {
+    document.getElementById("display-name").textContent = "⚠️ No ID found";
+    document.getElementById("display-uid").textContent  = "Open this link from your ID card";
+    return;
+  }
+
+  state.uid = uid;
+  document.getElementById("loading-banner").classList.add("show");
+  document.getElementById("display-uid").textContent = uid;
+
+  try {
+    const json = await jsonpFetch(
+      WEB_APP_URL + "?action=getmember&uid=" + encodeURIComponent(uid)
+    );
+    if (json.name) {
+      state.name = json.name;
+      state.shg  = json.shg || "";
+      state.cln  = json.cln || "";
+    }
+  } catch(e) {
+    console.warn("Member lookup failed:", e);
+    // UID is still set — attendance will still save with UID even if name lookup fails
+  }
+
+  document.getElementById("display-name").textContent  = state.name || uid;
+  document.getElementById("display-uid").textContent   = uid;
+  document.getElementById("display-extra").textContent = [state.shg, state.cln].filter(Boolean).join(" | ");
+  document.getElementById("loading-banner").classList.remove("show");
+}
+
+// ── STEP 0: TRAINER NAME ──────────────────────────────────────────────────────
+function confirmTrainer() {
+  const name = document.getElementById("trainer-name-input").value.trim();
+  if (!name) { alert("Please enter the trainer name."); return; }
+  state.trainerName = name;
+
+  document.getElementById("trainer-badge-text").textContent = "Trainer: " + name;
+  document.getElementById("trainer-badge").classList.add("show");
+  document.getElementById("card-trainer").classList.remove("active");
+
+  // Go straight to Training QR — beneficiary details are already pre-filled
+  showCard("card-training");
+}
+
+function changeTrainer() {
+  document.getElementById("trainer-name-input").value = state.trainerName;
+  document.getElementById("card-trainer").classList.add("active");
+  document.getElementById("trainer-name-input").focus();
+  document.getElementById("card-trainer").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+// ── QR ENGINE ─────────────────────────────────────────────────────────────────
+async function startQRScanner(videoId, canvasId, onSuccess) {
+  let stream;
+  try {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:{exact:"environment"}, width:{ideal:1280}, height:{ideal:720}}
+      });
+    } catch(e) {
+      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    }
+  } catch(err) {
+    return { error:"Camera permission denied. Please allow camera access." };
+  }
+
+  const video = document.getElementById(videoId);
+  video.srcObject = stream;
+  await new Promise(r => { video.onloadedmetadata = () => video.play().then(r).catch(r); });
+
+  let active = true, interval = null;
+  function stop() {
+    active = false;
+    if (interval) clearInterval(interval);
+    stream.getTracks().forEach(t => t.stop());
+  }
+
+  function jsqrDecode() {
+    if (!active || video.readyState < 2 || !window.jsQR) return;
+    const c = document.getElementById(canvasId), ctx = c.getContext("2d");
+    const w = video.videoWidth||640, h = video.videoHeight||480;
+    if (c.width!==w) c.width=w;
+    if (c.height!==h) c.height=h;
+    ctx.drawImage(video, 0, 0, w, h);
+    const code = window.jsQR(ctx.getImageData(0,0,w,h).data, w, h, {inversionAttempts:"dontInvert"});
+    if (code && code.data) { stop(); onSuccess(code.data); }
+  }
+
+  async function nativeDecode() {
+    if (!active || video.readyState < 2) return;
+    try {
+      const d = new BarcodeDetector({formats:["qr_code"]});
+      const bc = await d.detect(video);
+      if (bc.length > 0 && bc[0].rawValue) { stop(); onSuccess(bc[0].rawValue); }
+    } catch(e) {}
+  }
+
+  if (typeof BarcodeDetector !== "undefined") {
+    interval = setInterval(nativeDecode, 300);
+  } else {
+    await loadJsQR();
+    interval = setInterval(jsqrDecode, 300);
+  }
+  return { stop };
+}
+
+function loadJsQR() {
+  return new Promise((res, rej) => {
+    if (window.jsQR) { res(); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js";
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function startScanner(which, onSuccess) {
+  const labels = { trn:"📷 Scan Training QR", sub:"📷 Scan Sub-Training QR" };
+  const btn = document.getElementById("btn-"+which+"-scan");
+  btn.disabled = true; btn.textContent = "⏳ Starting...";
+  document.getElementById(which+"-error-box").style.display = "none";
+  document.getElementById(which+"-placeholder").style.display = "none";
+  document.getElementById(which+"-qr-wrap").style.display = "block";
+
+  const result = await startQRScanner(which+"-video", which+"-canvas", onSuccess);
+  if (result && result.error) {
+    document.getElementById(which+"-error-text").textContent = result.error;
+    document.getElementById(which+"-error-box").style.display = "block";
+    document.getElementById(which+"-qr-wrap").style.display = "none";
+    document.getElementById(which+"-placeholder").style.display = "flex";
+    btn.disabled = false; btn.textContent = labels[which];
+    return;
+  }
+  scanners[which] = result;
+  btn.textContent = "🔍 Scanning...";
+}
+
+function retryScanner(which) {
+  if (scanners[which]) { try { scanners[which].stop(); } catch(e) {} scanners[which] = null; }
+  document.getElementById(which+"-qr-wrap").style.display = "none";
+  document.getElementById(which+"-placeholder").style.display = "flex";
+  document.getElementById(which+"-error-box").style.display = "none";
+  if (which==="trn") setTimeout(startTrnScanner, 300);
+  if (which==="sub") setTimeout(startSubScanner, 300);
+}
+
+function toggleManual(which) {
+  const r = document.getElementById(which+"-manual-row");
+  r.style.display = (r.style.display==="flex") ? "none" : "flex";
+  if (r.style.display==="flex") document.getElementById(which+"-manual-input").focus();
+}
+
+function setManual(which) {
+  const val = document.getElementById(which+"-manual-input").value.trim();
+  if (!val) { alert("Please enter a value."); return; }
+  document.getElementById(which+"-manual-row").style.display = "none";
+  if (which==="trn") onTrnScanSuccess(val);
+  if (which==="sub") onSubScanSuccess(val);
+}
+
+// ── STEP 1: TRAINING QR ───────────────────────────────────────────────────────
+function startTrnScanner() { startScanner("trn", onTrnScanSuccess); }
+
+function detectType(name) {
+  const n = name.trim().toUpperCase();
+  if (n.startsWith("SDTC"))                               return "SDTC";
+  if (n.startsWith("ENT 1.6") || n.startsWith("ENT 1.7")) return "Value";
+  return "Normal";
+}
+
+function onTrnScanSuccess(text) {
+  const name = text.trim();
+  state.trainingName = name;
+  state.trainingType = detectType(name);
+  document.getElementById("trn-qr-wrap").style.display = "none";
+  document.getElementById("btn-trn-scan").textContent = "✅ Scanned";
+  document.getElementById("btn-trn-scan").disabled = true;
+  document.getElementById("trn-scan-text").textContent = name;
+
+  const badge = document.getElementById("trn-type-badge");
+  if (state.trainingType === "SDTC") {
+    badge.textContent = "SDTC — Sub-training required";
+    badge.className = "type-badge type-sdtc";
+  } else if (state.trainingType === "Value") {
+    badge.textContent = "Value Entry Required";
+    badge.className = "type-badge type-value";
+    document.getElementById("value-input-box").style.display = "block";
+  } else {
+    badge.textContent = "Normal Training";
+    badge.className = "type-badge type-normal";
+  }
+  document.getElementById("trn-scan-result").classList.add("show");
+
+  if (state.trainingType === "SDTC") {
+    setTimeout(() => showCard("card-subtraining"), 600);
+  } else {
+    showCard("card-location");
+    showCard("card-photo");
+    document.getElementById("btn-submit").classList.add("show");
+    checkSubmitReady();
+  }
+}
+
+// ── STEP 2: SUB-TRAINING QR ───────────────────────────────────────────────────
+function startSubScanner() { startScanner("sub", onSubScanSuccess); }
+
+function onSubScanSuccess(text) {
+  state.subTraining = text.trim();
+  document.getElementById("sub-qr-wrap").style.display = "none";
+  document.getElementById("btn-sub-scan").textContent = "✅ Scanned";
+  document.getElementById("btn-sub-scan").disabled = true;
+  document.getElementById("sub-scan-text").textContent = "✅ " + state.subTraining;
+  document.getElementById("sub-scan-result").classList.add("show");
+  setTimeout(() => {
+    showCard("card-location");
+    showCard("card-photo");
+    document.getElementById("btn-submit").classList.add("show");
+    checkSubmitReady();
+  }, 500);
+}
+
+// ── GPS ───────────────────────────────────────────────────────────────────────
+function getLocation() {
+  if (!navigator.geolocation) {
+    document.getElementById("loc-text").textContent = "Geolocation not supported.";
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      state.lat       = pos.coords.latitude.toFixed(6);
+      state.lng       = pos.coords.longitude.toFixed(6);
+      state.timestamp = new Date().toLocaleString("en-IN");
+      document.getElementById("loc-status").classList.add("success");
+      document.getElementById("loc-text").textContent = "📍 " + state.lat + ", " + state.lng;
+      checkSubmitReady();
+    },
+    () => {
+      document.getElementById("loc-text").textContent =
+        "Location denied. Enable GPS and refresh.";
+    },
+    { enableHighAccuracy:true, timeout:15000 }
+  );
+}
+
+// ── PHOTO ─────────────────────────────────────────────────────────────────────
+async function openCamera() {
+  try {
+    state.photoStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:"user", width:{ideal:320}, height:{ideal:240} }
+    });
+    const v = document.getElementById("camera-preview");
+    v.srcObject = state.photoStream;
+    v.style.display = "block";
+    document.getElementById("btn-open-camera").style.display = "none";
+    document.getElementById("btn-capture").style.display = "inline-flex";
+  } catch(e) { alert("Camera access denied. Please allow camera."); }
+}
+
+function capturePhoto() {
+  const v = document.getElementById("camera-preview");
+  const c = document.createElement("canvas");
+  c.width = 240; c.height = 180;
+  c.getContext("2d").drawImage(v, 0, 0, 240, 180);
+  const full = c.toDataURL("image/jpeg", 0.4);
+  state.photoBase64 = full.split(",")[1];
+
+  if (state.photoStream) state.photoStream.getTracks().forEach(t => t.stop());
+  v.style.display = "none";
+
+  const p = document.getElementById("photo-preview");
+  p.src = full; p.style.display = "block";
+  document.getElementById("btn-capture").style.display = "none";
+  document.getElementById("btn-retake").style.display = "inline-flex";
+  checkSubmitReady();
+}
+
+function retakePhoto() {
+  state.photoBase64 = "";
+  document.getElementById("photo-preview").style.display = "none";
+  document.getElementById("btn-retake").style.display = "none";
+  document.getElementById("btn-open-camera").style.display = "inline-flex";
+  checkSubmitReady();
+}
+
+// ── SUBMIT READY CHECK ────────────────────────────────────────────────────────
+function checkSubmitReady() {
+  const ok =
+    !!state.uid &&
+    !!state.trainingName &&
+    (state.trainingType !== "SDTC"  || !!state.subTraining) &&
+    (state.trainingType !== "Value" || !!(document.getElementById("value-input").value.trim())) &&
+    !!state.lat &&
+    !!state.photoBase64;
+  document.getElementById("btn-submit").disabled = !ok;
+}
+
+function setProgress(pct, text) {
+  document.getElementById("progress-bar").style.display = "block";
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("btn-submit").textContent = text;
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+async function submitAttendance() {
+  const btn = document.getElementById("btn-submit");
+  const msg = document.getElementById("status-msg");
+  btn.disabled = true;
+  msg.style.display = "none";
+
+  if (state.trainingType === "Value") {
+    state.entValue = document.getElementById("value-input").value.trim();
+  }
+
+  try {
+    setProgress(20, "Saving attendance...");
+
+    const url = WEB_APP_URL
+      + "?action=attendance"
+      + "&uid="          + encodeURIComponent(state.uid          || "Unknown")
+      + "&name="         + encodeURIComponent(state.name         || "Unknown")
+      + "&trainerName="  + encodeURIComponent(state.trainerName  || "Unknown")
+      + "&trainingName=" + encodeURIComponent(state.trainingName || "Unknown")
+      + "&trainingType=" + encodeURIComponent(state.trainingType || "Normal")
+      + "&subTraining="  + encodeURIComponent(state.subTraining  || "")
+      + "&entValue="     + encodeURIComponent(state.entValue     || "")
+      + "&lat="          + encodeURIComponent(state.lat          || "0")
+      + "&lng="          + encodeURIComponent(state.lng          || "0")
+      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"));
+
+    const res = await jsonpFetch(url);
+    if (!res.success) throw new Error(res.error || "Failed to save attendance");
+
+    const rowNum = res.rowNum || 0;
+
+    setProgress(60, "Uploading photo...");
+    if (state.photoBase64 && rowNum > 0) {
+      try {
+        await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            action: "photo",
+            rowNum: rowNum,
+            uid:    state.uid || "unknown",
+            photo:  state.photoBase64
+          })
+        });
+      } catch(photoErr) {
+        console.warn("Photo upload failed (attendance still saved):", photoErr.message);
+      }
+    }
+
+    setProgress(100, "Done!");
+
+    const displayName = (state.name || "Friend").trim();
+    const trnDisplay  = state.subTraining
+      ? state.trainingName + " — " + state.subTraining
+      : state.trainingName || "the training";
+    const dateStr = state.timestamp
+      ? state.timestamp.split(",")[0].trim()
+      : new Date().toLocaleDateString("en-IN");
+
+    setTimeout(() => {
+      document.getElementById("progress-bar").style.display = "none";
+      btn.style.display = "none";
+      document.querySelectorAll(".step-card").forEach(c => c.style.display = "none");
+      document.getElementById("info-card").style.display = "none";
+
+      msg.className = "status-msg success";
+      msg.style.display = "block";
+      window.scrollTo({top:0, behavior:"smooth"});
+
+      msg.innerHTML =
+        "<div style='font-size:40px;margin-bottom:8px;'>🎉</div>" +
+        "<div style='font-size:18px;font-weight:800;color:#1b5e20;margin-bottom:6px;'>Thank You, " + displayName + "!</div>" +
+        "<div style='font-size:14px;font-weight:500;color:#2e7d32;line-height:1.6;'>" +
+          "Your attendance for <strong>" + trnDisplay + "</strong><br>" +
+          "on <strong>" + dateStr + "</strong> has been saved." +
+        "</div>" +
+        "<div style='margin-top:16px;font-size:12px;color:#888;'>You may now close this page.</div>";
+    }, 500);
+
+  } catch(e) {
+    document.getElementById("progress-bar").style.display = "none";
+    msg.className = "status-msg error";
+    msg.textContent = "❌ ERROR: " + e.message;
+    msg.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "↩ Retry Submit";
+  }
+}
+</script>
+</body>
+</html>
