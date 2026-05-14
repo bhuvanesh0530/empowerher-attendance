@@ -33,6 +33,11 @@
       margin-bottom: 14px; display: none; align-items: center; gap: 8px;
     }
     .trainer-badge.show { display: flex; }
+    /* ── CHANGE TRAINER link inside badge ── */
+    .trainer-badge .change-link {
+      margin-left: auto; font-size: 12px; color: #0b78ba;
+      text-decoration: underline; cursor: pointer; font-weight: 600;
+    }
     .step-card {
       background: white; border-radius: 12px; padding: 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 14px;
@@ -187,27 +192,29 @@
     </div>
   </div>
 
+  <!-- TRAINER BADGE — shown after step 0, stays visible all session -->
   <div class="trainer-badge" id="trainer-badge">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0C447C" stroke-width="2">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
       <circle cx="12" cy="7" r="4"/>
     </svg>
     <span id="trainer-badge-text">Trainer: —</span>
+    <span class="change-link" onclick="changeTrainer()">Change</span>
   </div>
 
-  <!-- STEP 0: TRAINER NAME -->
+  <!-- STEP 0: TRAINER NAME — shown only once per session -->
   <div class="step-card active" id="card-trainer">
     <div class="step-header">
       <div class="step-num">0</div>
       <div class="step-title">Enter Trainer Name</div>
     </div>
     <div class="trainer-box">
-      <label>Your name (Trainer)</label>
+      <label>Your name (Trainer) — you will only enter this once per session</label>
       <input type="text" id="trainer-name-input" placeholder="Type your name here..."
              onkeydown="if(event.key==='Enter') confirmTrainer()"/>
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;"
-            onclick="confirmTrainer()">✔ Confirm &amp; Continue</button>
+            onclick="confirmTrainer()">✔ Confirm &amp; Start Scanning</button>
   </div>
 
   <!-- STEP 1: BENEFICIARY QR -->
@@ -405,36 +412,48 @@
 </div>
 
 <script>
+// ── CONFIG ─────────────────────────────────────────────────────────────────────
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyXBilYPA_Cg8ReLun1OYiDLxfiE46-gMfyDo_I8gk3fs-2PLmF8s166Hh6JTOyOB0R/exec";
 
+// ── STATE ──────────────────────────────────────────────────────────────────────
+// trainerName persists across beneficiaries — everything else resets
 const state = {
-  trainerName:"", uid:"", name:"", shg:"", cln:"",
+  trainerName:"",
+  uid:"", name:"", shg:"", cln:"",
   trainingName:"", trainingType:"", subTraining:"", entValue:"",
   lat:null, lng:null, timestamp:"", photoBase64:"", photoStream:null
 };
 const scanners = { ben:null, trn:null, sub:null };
 
+// ── JSONP FETCH ────────────────────────────────────────────────────────────────
 function jsonpFetch(url) {
   return new Promise((resolve, reject) => {
     const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*9999);
     const s  = document.createElement("script");
-    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 20000);
+    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 25000);
     window[cb] = d => { cleanup(); resolve(d); };
-    function cleanup() { clearTimeout(t); delete window[cb]; if(s.parentNode) s.parentNode.removeChild(s); }
+    function cleanup() {
+      clearTimeout(t); delete window[cb];
+      if (s.parentNode) s.parentNode.removeChild(s);
+    }
     s.onerror = () => { cleanup(); reject(new Error("Network error")); };
     s.src = url + (url.includes("?")?"&":"?") + "callback=" + cb;
     document.head.appendChild(s);
   });
 }
 
+// ── INIT ───────────────────────────────────────────────────────────────────────
 window.onload = () => { getLocation(); };
 
 function showCard(id) {
   document.getElementById(id).classList.add("active");
-  setTimeout(() => document.getElementById(id).scrollIntoView({behavior:"smooth",block:"start"}), 100);
+  setTimeout(() => {
+    document.getElementById(id).scrollIntoView({behavior:"smooth", block:"start"});
+  }, 100);
 }
 
-// STEP 0 — TRAINER NAME
+// ── STEP 0: TRAINER NAME ───────────────────────────────────────────────────────
+// Called once at session start — or again if trainer taps "Change"
 function confirmTrainer() {
   const name = document.getElementById("trainer-name-input").value.trim();
   if (!name) { alert("Please enter your name."); return; }
@@ -445,318 +464,446 @@ function confirmTrainer() {
   showCard("card-beneficiary");
 }
 
-// QR ENGINE
+// Trainer taps "Change" — re-shows Step 0 without resetting beneficiary data
+function changeTrainer() {
+  document.getElementById("trainer-name-input").value = state.trainerName;
+  document.getElementById("card-trainer").classList.add("active");
+  document.getElementById("trainer-name-input").focus();
+  document.getElementById("card-trainer").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+// ── QR ENGINE ─────────────────────────────────────────────────────────────────
 async function startQRScanner(videoId, canvasId, onSuccess) {
   let stream;
   try {
-    try { stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:"environment"},width:{ideal:1280},height:{ideal:720}}}); }
-    catch(e) { stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); }
-  } catch(err) { return { error:"Camera permission denied." }; }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:{exact:"environment"}, width:{ideal:1280}, height:{ideal:720}}
+      });
+    } catch(e) {
+      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    }
+  } catch(err) {
+    return { error:"Camera permission denied. Please allow camera access." };
+  }
 
   const video = document.getElementById(videoId);
   video.srcObject = stream;
   await new Promise(r => { video.onloadedmetadata = () => video.play().then(r).catch(r); });
 
   let active = true, interval = null;
-  function stop() { active=false; if(interval) clearInterval(interval); stream.getTracks().forEach(t=>t.stop()); }
+  function stop() {
+    active = false;
+    if (interval) clearInterval(interval);
+    stream.getTracks().forEach(t => t.stop());
+  }
 
   function jsqrDecode() {
-    if (!active || video.readyState<2 || !window.jsQR) return;
-    const c=document.getElementById(canvasId), ctx=c.getContext("2d");
-    const w=video.videoWidth||640, h=video.videoHeight||480;
-    if(c.width!==w) c.width=w; if(c.height!==h) c.height=h;
-    ctx.drawImage(video,0,0,w,h);
-    const code=window.jsQR(ctx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:"dontInvert"});
-    if(code&&code.data){stop();onSuccess(code.data);}
-  }
-  async function nativeDecode() {
-    if(!active||video.readyState<2) return;
-    try { const d=new BarcodeDetector({formats:["qr_code"]}),bc=await d.detect(video); if(bc.length>0&&bc[0].rawValue){stop();onSuccess(bc[0].rawValue);} } catch(e){}
+    if (!active || video.readyState < 2 || !window.jsQR) return;
+    const c = document.getElementById(canvasId), ctx = c.getContext("2d");
+    const w = video.videoWidth||640, h = video.videoHeight||480;
+    if (c.width!==w) c.width=w;
+    if (c.height!==h) c.height=h;
+    ctx.drawImage(video, 0, 0, w, h);
+    const code = window.jsQR(ctx.getImageData(0,0,w,h).data, w, h, {inversionAttempts:"dontInvert"});
+    if (code && code.data) { stop(); onSuccess(code.data); }
   }
 
-  if (typeof BarcodeDetector!=="undefined") { interval=setInterval(nativeDecode,300); }
-  else { await loadJsQR(); interval=setInterval(jsqrDecode,300); }
+  async function nativeDecode() {
+    if (!active || video.readyState < 2) return;
+    try {
+      const d = new BarcodeDetector({formats:["qr_code"]});
+      const bc = await d.detect(video);
+      if (bc.length > 0 && bc[0].rawValue) { stop(); onSuccess(bc[0].rawValue); }
+    } catch(e) {}
+  }
+
+  if (typeof BarcodeDetector !== "undefined") {
+    interval = setInterval(nativeDecode, 300);
+  } else {
+    await loadJsQR();
+    interval = setInterval(jsqrDecode, 300);
+  }
   return { stop };
 }
 
 function loadJsQR() {
-  return new Promise((res,rej) => {
-    if(window.jsQR){res();return;}
-    const s=document.createElement("script");
-    s.src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js";
-    s.onload=res; s.onerror=rej; document.head.appendChild(s);
+  return new Promise((res, rej) => {
+    if (window.jsQR) { res(); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js";
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
   });
 }
 
 async function startScanner(which, onSuccess) {
-  const labels = {ben:"📷 Scan Beneficiary QR", trn:"📷 Scan Training QR", sub:"📷 Scan Sub-Training QR"};
+  const labels = {
+    ben:"📷 Scan Beneficiary QR",
+    trn:"📷 Scan Training QR",
+    sub:"📷 Scan Sub-Training QR"
+  };
   const btn = document.getElementById("btn-"+which+"-scan");
-  btn.disabled=true; btn.textContent="⏳ Starting...";
-  document.getElementById(which+"-error-box").style.display="none";
-  document.getElementById(which+"-placeholder").style.display="none";
-  document.getElementById(which+"-qr-wrap").style.display="block";
+  btn.disabled = true; btn.textContent = "⏳ Starting...";
+  document.getElementById(which+"-error-box").style.display = "none";
+  document.getElementById(which+"-placeholder").style.display = "none";
+  document.getElementById(which+"-qr-wrap").style.display = "block";
+
   const result = await startQRScanner(which+"-video", which+"-canvas", onSuccess);
-  if (result&&result.error) {
-    document.getElementById(which+"-error-text").textContent=result.error;
-    document.getElementById(which+"-error-box").style.display="block";
-    document.getElementById(which+"-qr-wrap").style.display="none";
-    document.getElementById(which+"-placeholder").style.display="flex";
-    btn.disabled=false; btn.textContent=labels[which]; return;
+  if (result && result.error) {
+    document.getElementById(which+"-error-text").textContent = result.error;
+    document.getElementById(which+"-error-box").style.display = "block";
+    document.getElementById(which+"-qr-wrap").style.display = "none";
+    document.getElementById(which+"-placeholder").style.display = "flex";
+    btn.disabled = false; btn.textContent = labels[which];
+    return;
   }
-  scanners[which]=result; btn.textContent="🔍 Scanning...";
+  scanners[which] = result;
+  btn.textContent = "🔍 Scanning...";
 }
 
 function retryScanner(which) {
-  if(scanners[which]){try{scanners[which].stop();}catch(e){} scanners[which]=null;}
-  document.getElementById(which+"-qr-wrap").style.display="none";
-  document.getElementById(which+"-placeholder").style.display="flex";
-  document.getElementById(which+"-error-box").style.display="none";
-  if(which==="ben") setTimeout(startBenScanner,300);
-  if(which==="trn") setTimeout(startTrnScanner,300);
-  if(which==="sub") setTimeout(startSubScanner,300);
+  if (scanners[which]) { try { scanners[which].stop(); } catch(e) {} scanners[which] = null; }
+  document.getElementById(which+"-qr-wrap").style.display = "none";
+  document.getElementById(which+"-placeholder").style.display = "flex";
+  document.getElementById(which+"-error-box").style.display = "none";
+  if (which==="ben") setTimeout(startBenScanner, 300);
+  if (which==="trn") setTimeout(startTrnScanner, 300);
+  if (which==="sub") setTimeout(startSubScanner, 300);
 }
 
 function toggleManual(which) {
-  const r=document.getElementById(which+"-manual-row");
-  r.style.display=(r.style.display==="flex")?"none":"flex";
-  if(r.style.display==="flex") document.getElementById(which+"-manual-input").focus();
-}
-function setManual(which) {
-  const val=document.getElementById(which+"-manual-input").value.trim();
-  if(!val){alert("Please enter a value.");return;}
-  document.getElementById(which+"-manual-row").style.display="none";
-  if(which==="ben") onBenScanSuccess(val);
-  if(which==="trn") onTrnScanSuccess(val);
-  if(which==="sub") onSubScanSuccess(val);
+  const r = document.getElementById(which+"-manual-row");
+  r.style.display = (r.style.display==="flex") ? "none" : "flex";
+  if (r.style.display==="flex") document.getElementById(which+"-manual-input").focus();
 }
 
-// STEP 1 — BENEFICIARY
+function setManual(which) {
+  const val = document.getElementById(which+"-manual-input").value.trim();
+  if (!val) { alert("Please enter a value."); return; }
+  document.getElementById(which+"-manual-row").style.display = "none";
+  if (which==="ben") onBenScanSuccess(val);
+  if (which==="trn") onTrnScanSuccess(val);
+  if (which==="sub") onSubScanSuccess(val);
+}
+
+// ── STEP 1: BENEFICIARY ────────────────────────────────────────────────────────
 function startBenScanner() { startScanner("ben", onBenScanSuccess); }
+
 async function onBenScanSuccess(text) {
   const uid = text.trim().toUpperCase();
   state.uid = uid;
-  document.getElementById("ben-qr-wrap").style.display="none";
-  document.getElementById("btn-ben-scan").textContent="✅ Scanned";
-  document.getElementById("btn-ben-scan").disabled=true;
+  document.getElementById("ben-qr-wrap").style.display = "none";
+  document.getElementById("btn-ben-scan").textContent = "✅ Scanned";
+  document.getElementById("btn-ben-scan").disabled = true;
+
   try {
-    const json = await jsonpFetch(WEB_APP_URL+"?action=getmember&uid="+encodeURIComponent(uid));
-    if(json.name){state.name=json.name; state.shg=json.shg||""; state.cln=json.cln||"";}
-  } catch(e) { console.warn(e); }
-  document.getElementById("display-name").textContent  = state.name||uid;
+    const json = await jsonpFetch(
+      WEB_APP_URL + "?action=getmember&uid=" + encodeURIComponent(uid)
+    );
+    if (json.name) {
+      state.name = json.name;
+      state.shg  = json.shg || "";
+      state.cln  = json.cln || "";
+    }
+  } catch(e) { console.warn("Member lookup failed:", e); }
+
+  document.getElementById("display-name").textContent  = state.name || uid;
   document.getElementById("display-uid").textContent   = state.uid;
-  document.getElementById("display-extra").textContent = [state.shg,state.cln].filter(Boolean).join(" | ");
-  document.getElementById("ben-scan-text").textContent = "✅ "+(state.name||uid);
+  document.getElementById("display-extra").textContent = [state.shg, state.cln].filter(Boolean).join(" | ");
+  document.getElementById("ben-scan-text").textContent = "✅ " + (state.name || uid);
   document.getElementById("ben-scan-result").classList.add("show");
   setTimeout(() => showCard("card-training"), 600);
 }
 
-// STEP 2 — TRAINING
+// ── STEP 2: TRAINING ──────────────────────────────────────────────────────────
 function startTrnScanner() { startScanner("trn", onTrnScanSuccess); }
+
 function detectType(name) {
-  const n=name.trim().toUpperCase();
-  if(n.startsWith("SDTC")) return "SDTC";
-  if(n.startsWith("ENT 1.6")||n.startsWith("ENT 1.7")) return "Value";
+  const n = name.trim().toUpperCase();
+  if (n.startsWith("SDTC"))                             return "SDTC";
+  if (n.startsWith("ENT 1.6") || n.startsWith("ENT 1.7")) return "Value";
   return "Normal";
 }
+
 function onTrnScanSuccess(text) {
-  const name=text.trim();
-  state.trainingName=name; state.trainingType=detectType(name);
-  document.getElementById("trn-qr-wrap").style.display="none";
-  document.getElementById("btn-trn-scan").textContent="✅ Scanned";
-  document.getElementById("btn-trn-scan").disabled=true;
-  document.getElementById("trn-scan-text").textContent=name;
-  const badge=document.getElementById("trn-type-badge");
-  if(state.trainingType==="SDTC")       { badge.textContent="SDTC — Sub-training required"; badge.className="type-badge type-sdtc"; }
-  else if(state.trainingType==="Value") { badge.textContent="Value Entry Required"; badge.className="type-badge type-value"; document.getElementById("value-input-box").style.display="block"; }
-  else                                  { badge.textContent="Normal Training"; badge.className="type-badge type-normal"; }
+  const name = text.trim();
+  state.trainingName = name;
+  state.trainingType = detectType(name);
+  document.getElementById("trn-qr-wrap").style.display = "none";
+  document.getElementById("btn-trn-scan").textContent = "✅ Scanned";
+  document.getElementById("btn-trn-scan").disabled = true;
+  document.getElementById("trn-scan-text").textContent = name;
+
+  const badge = document.getElementById("trn-type-badge");
+  if (state.trainingType === "SDTC") {
+    badge.textContent = "SDTC — Sub-training required";
+    badge.className = "type-badge type-sdtc";
+  } else if (state.trainingType === "Value") {
+    badge.textContent = "Value Entry Required";
+    badge.className = "type-badge type-value";
+    document.getElementById("value-input-box").style.display = "block";
+  } else {
+    badge.textContent = "Normal Training";
+    badge.className = "type-badge type-normal";
+  }
   document.getElementById("trn-scan-result").classList.add("show");
-  if(state.trainingType==="SDTC") { setTimeout(()=>showCard("card-subtraining"),600); }
-  else { showCard("card-location"); showCard("card-photo"); document.getElementById("btn-submit").classList.add("show"); checkSubmitReady(); }
-}
 
-// STEP 3 — SUB TRAINING
-function startSubScanner() { startScanner("sub", onSubScanSuccess); }
-function onSubScanSuccess(text) {
-  state.subTraining=text.trim();
-  document.getElementById("sub-qr-wrap").style.display="none";
-  document.getElementById("btn-sub-scan").textContent="✅ Scanned";
-  document.getElementById("btn-sub-scan").disabled=true;
-  document.getElementById("sub-scan-text").textContent="✅ "+state.subTraining;
-  document.getElementById("sub-scan-result").classList.add("show");
-  setTimeout(()=>{showCard("card-location");showCard("card-photo");document.getElementById("btn-submit").classList.add("show");checkSubmitReady();},500);
-}
-
-// GPS
-function getLocation() {
-  if(!navigator.geolocation){document.getElementById("loc-text").textContent="Geolocation not supported.";return;}
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      state.lat=pos.coords.latitude.toFixed(6); state.lng=pos.coords.longitude.toFixed(6);
-      state.timestamp=new Date().toLocaleString("en-IN");
-      document.getElementById("loc-status").classList.add("success");
-      document.getElementById("loc-text").textContent="📍 "+state.lat+", "+state.lng;
-      checkSubmitReady();
-    },
-    ()=>{document.getElementById("loc-text").textContent="Location denied. Enable GPS and refresh.";},
-    {enableHighAccuracy:true,timeout:15000}
-  );
-}
-
-// PHOTO
-async function openCamera() {
-  try {
-    state.photoStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:320},height:{ideal:240}}});
-    const v=document.getElementById("camera-preview"); v.srcObject=state.photoStream; v.style.display="block";
-    document.getElementById("btn-open-camera").style.display="none";
-    document.getElementById("btn-capture").style.display="inline-flex";
-  } catch(e){alert("Camera denied.");}
-}
-function capturePhoto() {
-  const v=document.getElementById("camera-preview"),c=document.createElement("canvas");
-  c.width=200;c.height=150;c.getContext("2d").drawImage(v,0,0,200,150);
-  const full=c.toDataURL("image/jpeg",0.25);
-  state.photoBase64=full.split(",")[1];
-  if(state.photoStream) state.photoStream.getTracks().forEach(t=>t.stop());
-  v.style.display="none";
-  const p=document.getElementById("photo-preview"); p.src=full; p.style.display="block";
-  document.getElementById("btn-capture").style.display="none";
-  document.getElementById("btn-retake").style.display="inline-flex";
-  checkSubmitReady();
-}
-function retakePhoto() {
-  state.photoBase64="";
-  document.getElementById("photo-preview").style.display="none";
-  document.getElementById("btn-retake").style.display="none";
-  document.getElementById("btn-open-camera").style.display="inline-flex";
-  checkSubmitReady();
-}
-
-// SUBMIT READY
-function checkSubmitReady() {
-  const ok = !!state.uid && !!state.trainingName &&
-    (state.trainingType!=="SDTC"  || !!state.subTraining) &&
-    (state.trainingType!=="Value" || !!(document.getElementById("value-input").value.trim())) &&
-    !!state.lat && !!state.photoBase64;
-  document.getElementById("btn-submit").disabled=!ok;
-}
-
-function setProgress(pct,text) {
-  document.getElementById("progress-bar").style.display="block";
-  document.getElementById("progress-fill").style.width=pct+"%";
-  document.getElementById("btn-submit").textContent=text;
-}
-
-// SUBMIT
-async function submitAttendance() {
-  const btn=document.getElementById("btn-submit"), msg=document.getElementById("status-msg");
-  btn.disabled=true; msg.style.display="none";
-  if(state.trainingType==="Value") state.entValue=document.getElementById("value-input").value.trim();
-  try {
-    setProgress(30,"Saving attendance...");
-    const url=WEB_APP_URL
-      +"?action=attendance"
-      +"&uid="+encodeURIComponent(state.uid||"Unknown")
-      +"&name="+encodeURIComponent(state.name||"Unknown")
-      +"&trainerName="+encodeURIComponent(state.trainerName||"Unknown")
-      +"&trainingName="+encodeURIComponent(state.trainingName||"Unknown")
-      +"&trainingType="+encodeURIComponent(state.trainingType||"Normal")
-      +"&subTraining="+encodeURIComponent(state.subTraining||"")
-      +"&entValue="+encodeURIComponent(state.entValue||"")
-      +"&lat="+encodeURIComponent(state.lat||"0")
-      +"&lng="+encodeURIComponent(state.lng||"0")
-      +"&timestamp="+encodeURIComponent(state.timestamp||new Date().toLocaleString("en-IN"))
-      +"&photo="+encodeURIComponent(state.photoBase64||"");
-    const res=await jsonpFetch(url);
-    if(!res.success) throw new Error(res.error||"Failed to save");
-    setProgress(100,"Done!");
-    const displayName=(state.name||"Friend").trim();
-    const trnDisplay=state.subTraining?state.trainingName+" — "+state.subTraining:state.trainingName||"the training";
-    const dateStr=state.timestamp?state.timestamp.split(",")[0].trim():new Date().toLocaleDateString("en-IN");
-    setTimeout(()=>{
-      document.getElementById("progress-bar").style.display="none";
-      btn.style.display="none";
-      document.querySelectorAll(".step-card").forEach(c=>c.style.display="none");
-      document.getElementById("info-card").style.display="none";
-      msg.className="status-msg success"; msg.style.display="block";
-      window.scrollTo({top:0,behavior:"smooth"});
-      msg.innerHTML=
-        "<div style='font-size:40px;margin-bottom:8px;'>🎉</div>"+
-        "<div style='font-size:18px;font-weight:800;color:#1b5e20;margin-bottom:6px;'>Thank You, "+displayName+"!</div>"+
-        "<div style='font-size:14px;font-weight:500;color:#2e7d32;line-height:1.6;'>"+
-          "Attendance for <strong>"+trnDisplay+"</strong><br>on <strong>"+dateStr+"</strong> has been saved."+
-        "</div>"+
-        "<div style='margin-top:20px;'>"+
-          "<button onclick='nextBeneficiary()' style='background:#0b78ba;color:white;border:none;"+
-          "border-radius:8px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%;'>"+
-          "👤 Next Beneficiary</button>"+
-        "</div>"+
-        "<div style='margin-top:10px;font-size:12px;color:#888;'>Trainer: <strong>"+state.trainerName+"</strong></div>";
-    },500);
-  } catch(e) {
-    document.getElementById("progress-bar").style.display="none";
-    msg.className="status-msg error"; msg.textContent="❌ ERROR: "+e.message;
-    msg.style.display="block"; btn.disabled=false; btn.textContent="↩ Retry Submit";
+  if (state.trainingType === "SDTC") {
+    setTimeout(() => showCard("card-subtraining"), 600);
+  } else {
+    showCard("card-location");
+    showCard("card-photo");
+    document.getElementById("btn-submit").classList.add("show");
+    checkSubmitReady();
   }
 }
 
-// NEXT BENEFICIARY — keeps trainer name
+// ── STEP 3: SUB TRAINING ──────────────────────────────────────────────────────
+function startSubScanner() { startScanner("sub", onSubScanSuccess); }
+
+function onSubScanSuccess(text) {
+  state.subTraining = text.trim();
+  document.getElementById("sub-qr-wrap").style.display = "none";
+  document.getElementById("btn-sub-scan").textContent = "✅ Scanned";
+  document.getElementById("btn-sub-scan").disabled = true;
+  document.getElementById("sub-scan-text").textContent = "✅ " + state.subTraining;
+  document.getElementById("sub-scan-result").classList.add("show");
+  setTimeout(() => {
+    showCard("card-location");
+    showCard("card-photo");
+    document.getElementById("btn-submit").classList.add("show");
+    checkSubmitReady();
+  }, 500);
+}
+
+// ── GPS ───────────────────────────────────────────────────────────────────────
+function getLocation() {
+  if (!navigator.geolocation) {
+    document.getElementById("loc-text").textContent = "Geolocation not supported.";
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      state.lat       = pos.coords.latitude.toFixed(6);
+      state.lng       = pos.coords.longitude.toFixed(6);
+      state.timestamp = new Date().toLocaleString("en-IN");
+      document.getElementById("loc-status").classList.add("success");
+      document.getElementById("loc-text").textContent = "📍 " + state.lat + ", " + state.lng;
+      checkSubmitReady();
+    },
+    () => {
+      document.getElementById("loc-text").textContent =
+        "Location denied. Enable GPS and refresh.";
+    },
+    { enableHighAccuracy:true, timeout:15000 }
+  );
+}
+
+// ── PHOTO ─────────────────────────────────────────────────────────────────────
+async function openCamera() {
+  try {
+    state.photoStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:"user", width:{ideal:320}, height:{ideal:240} }
+    });
+    const v = document.getElementById("camera-preview");
+    v.srcObject = state.photoStream;
+    v.style.display = "block";
+    document.getElementById("btn-open-camera").style.display = "none";
+    document.getElementById("btn-capture").style.display = "inline-flex";
+  } catch(e) { alert("Camera access denied. Please allow camera."); }
+}
+
+function capturePhoto() {
+  const v = document.getElementById("camera-preview");
+  const c = document.createElement("canvas");
+  // Slightly larger capture for better quality
+  c.width = 320; c.height = 240;
+  c.getContext("2d").drawImage(v, 0, 0, 320, 240);
+  const full = c.toDataURL("image/jpeg", 0.5);
+  state.photoBase64 = full.split(",")[1];
+
+  if (state.photoStream) state.photoStream.getTracks().forEach(t => t.stop());
+  v.style.display = "none";
+
+  const p = document.getElementById("photo-preview");
+  p.src = full; p.style.display = "block";
+  document.getElementById("btn-capture").style.display = "none";
+  document.getElementById("btn-retake").style.display = "inline-flex";
+  checkSubmitReady();
+}
+
+function retakePhoto() {
+  state.photoBase64 = "";
+  document.getElementById("photo-preview").style.display = "none";
+  document.getElementById("btn-retake").style.display = "none";
+  document.getElementById("btn-open-camera").style.display = "inline-flex";
+  checkSubmitReady();
+}
+
+// ── SUBMIT READY CHECK ────────────────────────────────────────────────────────
+function checkSubmitReady() {
+  const ok =
+    !!state.uid &&
+    !!state.trainingName &&
+    (state.trainingType !== "SDTC"  || !!state.subTraining) &&
+    (state.trainingType !== "Value" || !!(document.getElementById("value-input").value.trim())) &&
+    !!state.lat &&
+    !!state.photoBase64;
+  document.getElementById("btn-submit").disabled = !ok;
+}
+
+function setProgress(pct, text) {
+  document.getElementById("progress-bar").style.display = "block";
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("btn-submit").textContent = text;
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+// Photo is sent INSIDE the GET request (encoded in URL param) — no separate POST needed.
+// Attendance.gs saves it in one shot. No silent failures.
+async function submitAttendance() {
+  const btn = document.getElementById("btn-submit");
+  const msg = document.getElementById("status-msg");
+  btn.disabled = true;
+  msg.style.display = "none";
+
+  if (state.trainingType === "Value") {
+    state.entValue = document.getElementById("value-input").value.trim();
+  }
+
+  try {
+    setProgress(30, "Saving attendance...");
+
+    // Photo is included as a URL param — Apps Script receives and saves it to Drive
+    const url = WEB_APP_URL
+      + "?action=attendance"
+      + "&uid="          + encodeURIComponent(state.uid          || "Unknown")
+      + "&name="         + encodeURIComponent(state.name         || "Unknown")
+      + "&trainerName="  + encodeURIComponent(state.trainerName  || "Unknown")
+      + "&trainingName=" + encodeURIComponent(state.trainingName || "Unknown")
+      + "&trainingType=" + encodeURIComponent(state.trainingType || "Normal")
+      + "&subTraining="  + encodeURIComponent(state.subTraining  || "")
+      + "&entValue="     + encodeURIComponent(state.entValue     || "")
+      + "&lat="          + encodeURIComponent(state.lat          || "0")
+      + "&lng="          + encodeURIComponent(state.lng          || "0")
+      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"))
+      + "&photo="        + encodeURIComponent(state.photoBase64  || "");
+
+    const res = await jsonpFetch(url);
+    if (!res.success) throw new Error(res.error || "Failed to save attendance");
+
+    setProgress(100, "Done!");
+
+    const displayName = (state.name || "Friend").trim();
+    const trnDisplay  = state.subTraining
+      ? state.trainingName + " — " + state.subTraining
+      : state.trainingName || "the training";
+    const dateStr = state.timestamp
+      ? state.timestamp.split(",")[0].trim()
+      : new Date().toLocaleDateString("en-IN");
+
+    setTimeout(() => {
+      document.getElementById("progress-bar").style.display = "none";
+      btn.style.display = "none";
+      document.querySelectorAll(".step-card").forEach(c => c.style.display = "none");
+      document.getElementById("info-card").style.display = "none";
+
+      msg.className = "status-msg success";
+      msg.style.display = "block";
+      window.scrollTo({top:0, behavior:"smooth"});
+
+      msg.innerHTML =
+        "<div style='font-size:40px;margin-bottom:8px;'>🎉</div>" +
+        "<div style='font-size:18px;font-weight:800;color:#1b5e20;margin-bottom:6px;'>Thank You, " + displayName + "!</div>" +
+        "<div style='font-size:14px;font-weight:500;color:#2e7d32;line-height:1.6;'>" +
+          "Attendance for <strong>" + trnDisplay + "</strong><br>" +
+          "on <strong>" + dateStr + "</strong> has been saved." +
+        "</div>" +
+        "<div style='margin-top:20px;'>" +
+          "<button onclick='nextBeneficiary()' style='background:#0b78ba;color:white;border:none;" +
+          "border-radius:8px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%;'>" +
+          "👤 Next Beneficiary</button>" +
+        "</div>" +
+        "<div style='margin-top:10px;font-size:12px;color:#888;'>Trainer: <strong>" + state.trainerName + "</strong></div>";
+    }, 500);
+
+  } catch(e) {
+    document.getElementById("progress-bar").style.display = "none";
+    msg.className = "status-msg error";
+    msg.textContent = "❌ ERROR: " + e.message;
+    msg.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "↩ Retry Submit";
+  }
+}
+
+// ── NEXT BENEFICIARY ──────────────────────────────────────────────────────────
+// Trainer name is KEPT. Only beneficiary-specific data resets.
+// Goes straight to Step 1 — trainer never re-enters name.
 function nextBeneficiary() {
-  // Reset state except trainerName
-  state.uid=""; state.name=""; state.shg=""; state.cln="";
-  state.trainingName=""; state.trainingType=""; state.subTraining=""; state.entValue="";
-  state.lat=null; state.lng=null; state.timestamp=""; state.photoBase64=""; state.photoStream=null;
 
-  // Stop scanners
-  ["ben","trn","sub"].forEach(w=>{
-    if(scanners[w]){try{scanners[w].stop();}catch(e){} scanners[w]=null;}
+  // Reset only beneficiary-specific state — trainerName stays
+  state.uid = ""; state.name = ""; state.shg = ""; state.cln = "";
+  state.trainingName = ""; state.trainingType = ""; state.subTraining = ""; state.entValue = "";
+  state.lat = null; state.lng = null; state.timestamp = "";
+  state.photoBase64 = ""; state.photoStream = null;
+
+  // Stop any active scanners
+  ["ben","trn","sub"].forEach(w => {
+    if (scanners[w]) { try { scanners[w].stop(); } catch(e) {} scanners[w] = null; }
   });
 
-  // Reset info card
-  document.getElementById("display-name").textContent="—";
-  document.getElementById("display-uid").textContent="Scan beneficiary QR to begin";
-  document.getElementById("display-extra").textContent="";
-  document.getElementById("info-card").style.display="flex";
+  // Reset info card display
+  document.getElementById("display-name").textContent  = "—";
+  document.getElementById("display-uid").textContent   = "Scan beneficiary QR to begin";
+  document.getElementById("display-extra").textContent = "";
+  document.getElementById("info-card").style.display   = "flex";
 
-  // Reset submit + status
-  const msg=document.getElementById("status-msg");
-  msg.style.display="none"; msg.className="status-msg";
-  const btn=document.getElementById("btn-submit");
-  btn.style.display="none"; btn.classList.remove("show");
-  btn.disabled=true; btn.textContent="✅ Submit Attendance";
-  document.getElementById("progress-bar").style.display="none";
+  // Reset submit button and status
+  const msg = document.getElementById("status-msg");
+  msg.style.display = "none"; msg.className = "status-msg";
+  const btn = document.getElementById("btn-submit");
+  btn.style.display = "none"; btn.classList.remove("show");
+  btn.disabled = true; btn.textContent = "✅ Submit Attendance";
+  document.getElementById("progress-bar").style.display = "none";
 
-  // Reset all scan cards
-  ["ben","trn","sub"].forEach(w=>{
+  // Reset all QR scan cards
+  ["ben","trn","sub"].forEach(w => {
     document.getElementById(w+"-scan-result").classList.remove("show");
-    document.getElementById(w+"-qr-wrap").style.display="none";
-    document.getElementById(w+"-placeholder").style.display="flex";
-    document.getElementById("btn-"+w+"-scan").disabled=false;
-    document.getElementById(w+"-error-box").style.display="none";
-    document.getElementById(w+"-manual-row").style.display="none";
-    document.getElementById(w+"-manual-input").value="";
+    document.getElementById(w+"-qr-wrap").style.display   = "none";
+    document.getElementById(w+"-placeholder").style.display = "flex";
+    document.getElementById("btn-"+w+"-scan").disabled    = false;
+    document.getElementById(w+"-error-box").style.display  = "none";
+    document.getElementById(w+"-manual-row").style.display = "none";
+    document.getElementById(w+"-manual-input").value       = "";
   });
-  document.getElementById("btn-ben-scan").textContent="📷 Scan Beneficiary QR";
-  document.getElementById("btn-trn-scan").textContent="📷 Scan Training QR";
-  document.getElementById("btn-sub-scan").textContent="📷 Scan Sub-Training QR";
-  document.getElementById("value-input-box").style.display="none";
-  document.getElementById("value-input").value="";
+  document.getElementById("btn-ben-scan").textContent = "📷 Scan Beneficiary QR";
+  document.getElementById("btn-trn-scan").textContent = "📷 Scan Training QR";
+  document.getElementById("btn-sub-scan").textContent = "📷 Scan Sub-Training QR";
+  document.getElementById("value-input-box").style.display = "none";
+  document.getElementById("value-input").value = "";
 
   // Reset photo
-  document.getElementById("photo-preview").style.display="none";
-  document.getElementById("camera-preview").style.display="none";
-  document.getElementById("btn-open-camera").style.display="inline-flex";
-  document.getElementById("btn-capture").style.display="none";
-  document.getElementById("btn-retake").style.display="none";
+  document.getElementById("photo-preview").style.display   = "none";
+  document.getElementById("camera-preview").style.display  = "none";
+  document.getElementById("btn-open-camera").style.display = "inline-flex";
+  document.getElementById("btn-capture").style.display     = "none";
+  document.getElementById("btn-retake").style.display      = "none";
 
-  // Reset GPS display
+  // Reset GPS display (re-fetch fresh location)
   document.getElementById("loc-status").classList.remove("success");
-  document.getElementById("loc-text").textContent="Requesting location...";
+  document.getElementById("loc-text").textContent = "Requesting location...";
 
-  // Hide all cards, show beneficiary scan
-  document.querySelectorAll(".step-card").forEach(c=>c.classList.remove("active"));
-  showCard("card-beneficiary");
+  // Hide all step cards — show Step 1 directly (NOT Step 0)
+  document.querySelectorAll(".step-card").forEach(c => c.classList.remove("active"));
+  showCard("card-beneficiary"); // ← Trainer skips straight to here
+
+  // Trainer badge stays visible throughout
+  // (already showing from first confirmTrainer() call)
+
   getLocation();
-  window.scrollTo({top:0,behavior:"smooth"});
+  window.scrollTo({top:0, behavior:"smooth"});
 }
 </script>
 </body>
