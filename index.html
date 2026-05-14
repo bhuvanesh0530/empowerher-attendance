@@ -717,10 +717,10 @@ async function openCamera() {
 function capturePhoto() {
   const v = document.getElementById("camera-preview");
   const c = document.createElement("canvas");
-  // Slightly larger capture for better quality
-  c.width = 320; c.height = 240;
-  c.getContext("2d").drawImage(v, 0, 0, 320, 240);
-  const full = c.toDataURL("image/jpeg", 0.5);
+  // 240x180 at 40% quality — keeps base64 under 25KB, safe for POST
+  c.width = 240; c.height = 180;
+  c.getContext("2d").drawImage(v, 0, 0, 240, 180);
+  const full = c.toDataURL("image/jpeg", 0.4);
   state.photoBase64 = full.split(",")[1];
 
   if (state.photoStream) state.photoStream.getTracks().forEach(t => t.stop());
@@ -760,8 +760,9 @@ function setProgress(pct, text) {
 }
 
 // ── SUBMIT ────────────────────────────────────────────────────────────────────
-// Photo is sent INSIDE the GET request (encoded in URL param) — no separate POST needed.
-// Attendance.gs saves it in one shot. No silent failures.
+// Step 1: Send all attendance data via JSONP GET (no photo — keeps URL short)
+// Step 2: Send photo via fetch POST using the row number from Step 1
+// This avoids the URL-too-long crash on Android Chrome.
 async function submitAttendance() {
   const btn = document.getElementById("btn-submit");
   const msg = document.getElementById("status-msg");
@@ -773,9 +774,9 @@ async function submitAttendance() {
   }
 
   try {
-    setProgress(30, "Saving attendance...");
+    // ── STEP 1: Save attendance row (no photo) ──────────────
+    setProgress(20, "Saving attendance...");
 
-    // Photo is included as a URL param — Apps Script receives and saves it to Drive
     const url = WEB_APP_URL
       + "?action=attendance"
       + "&uid="          + encodeURIComponent(state.uid          || "Unknown")
@@ -787,11 +788,36 @@ async function submitAttendance() {
       + "&entValue="     + encodeURIComponent(state.entValue     || "")
       + "&lat="          + encodeURIComponent(state.lat          || "0")
       + "&lng="          + encodeURIComponent(state.lng          || "0")
-      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"))
-      + "&photo="        + encodeURIComponent(state.photoBase64  || "");
+      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"));
 
     const res = await jsonpFetch(url);
     if (!res.success) throw new Error(res.error || "Failed to save attendance");
+
+    const rowNum = res.rowNum || 0;
+
+    // ── STEP 2: Upload photo via POST (separate, safe) ──────
+    setProgress(60, "Uploading photo...");
+    if (state.photoBase64 && rowNum > 0) {
+      try {
+        await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            action: "photo",
+            rowNum: rowNum,
+            uid:    state.uid || "unknown",
+            photo:  state.photoBase64
+          })
+        });
+        // fetch to Apps Script always gets a network-level response
+        // Apps Script handles the save — we don't need to read the response body
+      } catch(photoErr) {
+        // Photo upload failed — attendance row is already saved, just no photo
+        console.warn("Photo upload failed (attendance still saved):", photoErr.message);
+      }
+    }
+
+    setProgress(100, "Done!");
 
     setProgress(100, "Done!");
 
