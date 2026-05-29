@@ -191,7 +191,6 @@
     </div>
   </div>
 
-  <!-- TRAINER BADGE -->
   <div class="trainer-badge" id="trainer-badge">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0C447C" stroke-width="2">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -617,7 +616,7 @@ function startTrnScanner() { startScanner("trn", onTrnScanSuccess); }
 
 function detectType(name) {
   const n = name.trim().toUpperCase();
-  if (n.startsWith("SDTC"))                             return "SDTC";
+  if (n.startsWith("SDTC"))                               return "SDTC";
   if (n.startsWith("ENT 1.6") || n.startsWith("ENT 1.7")) return "Value";
   return "Normal";
 }
@@ -713,13 +712,10 @@ async function openCamera() {
 function capturePhoto() {
   const v = document.getElementById("camera-preview");
   const c = document.createElement("canvas");
-
-  // ── FIX: Smaller size + lower quality keeps photo small enough
-  //         to send in the same request as attendance data.
-  //         120x90 pixels at 25% quality = ~4-6KB base64 (safe for URL).
-  c.width = 120; c.height = 90;
-  c.getContext("2d").drawImage(v, 0, 0, 120, 90);
-  const full = c.toDataURL("image/jpeg", 0.25);
+  // 240x180 at 40% quality — keeps base64 under 25KB, safe for POST
+  c.width = 240; c.height = 180;
+  c.getContext("2d").drawImage(v, 0, 0, 240, 180);
+  const full = c.toDataURL("image/jpeg", 0.4);
   state.photoBase64 = full.split(",")[1];
 
   if (state.photoStream) state.photoStream.getTracks().forEach(t => t.stop());
@@ -759,9 +755,11 @@ function setProgress(pct, text) {
 }
 
 // ── SUBMIT ────────────────────────────────────────────────────────────────────
-// ── FIX: Photo is now sent in the SAME JSONP GET request as attendance data.
-//         This avoids CORS errors that silently blocked the previous
-//         separate fetch() POST photo upload. No more missing Photo URL!
+// Step 1: Save attendance row via JSONP GET (no photo) — get back the row number
+// Step 2: Send photo via fetch POST using that row number
+// The fetch POST is fire-and-forget — we do NOT await or read the response,
+// which avoids the CORS block entirely. The row is already saved so
+// even if the photo times out, attendance is not lost.
 async function submitAttendance() {
   const btn = document.getElementById("btn-submit");
   const msg = document.getElementById("status-msg");
@@ -773,10 +771,9 @@ async function submitAttendance() {
   }
 
   try {
+    // ── STEP 1: Save attendance row (no photo) ──────────────
     setProgress(20, "Saving attendance...");
 
-    // Photo is included directly in the GET request as a URL parameter.
-    // The photo is small enough (120x90 @ 25% quality) to fit safely.
     const url = WEB_APP_URL
       + "?action=attendance"
       + "&uid="          + encodeURIComponent(state.uid          || "Unknown")
@@ -788,12 +785,37 @@ async function submitAttendance() {
       + "&entValue="     + encodeURIComponent(state.entValue     || "")
       + "&lat="          + encodeURIComponent(state.lat          || "0")
       + "&lng="          + encodeURIComponent(state.lng          || "0")
-      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"))
-      + "&photo="        + encodeURIComponent(state.photoBase64  || "");
+      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"));
 
-    setProgress(60, "Uploading...");
     const res = await jsonpFetch(url);
     if (!res.success) throw new Error(res.error || "Failed to save attendance");
+
+    const rowNum = res.rowNum || 0;
+
+    // ── STEP 2: Fire-and-forget photo POST ──────────────────
+    // We do NOT await this and do NOT read the response.
+    // CORS blocks reading the response from a browser fetch to Apps Script,
+    // but the REQUEST itself is sent and received fine by Apps Script.
+    // Apps Script processes it and saves the photo — we just can't read its reply.
+    setProgress(60, "Uploading photo...");
+    if (state.photoBase64 && rowNum > 0) {
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          action: "photo",
+          rowNum: rowNum,
+          uid:    state.uid || "unknown",
+          photo:  state.photoBase64
+        })
+      }).catch(() => {
+        // Silently ignore — attendance row is already saved.
+        // Photo may not appear if network fails, but data is not lost.
+      });
+    }
+
+    // ── Wait 3 seconds to give the photo POST time to reach Apps Script
+    await new Promise(r => setTimeout(r, 3000));
 
     setProgress(100, "Done!");
 
@@ -842,7 +864,6 @@ async function submitAttendance() {
 
 // ── NEXT BENEFICIARY ──────────────────────────────────────────────────────────
 function nextBeneficiary() {
-
   state.uid = ""; state.name = ""; state.shg = ""; state.cln = "";
   state.trainingName = ""; state.trainingType = ""; state.subTraining = ""; state.entValue = "";
   state.lat = null; state.lng = null; state.timestamp = "";
