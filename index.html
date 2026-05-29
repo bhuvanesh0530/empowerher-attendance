@@ -413,9 +413,6 @@
 // ── CONFIG ─────────────────────────────────────────────────────────────────────
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyXBilYPA_Cg8ReLun1OYiDLxfiE46-gMfyDo_I8gk3fs-2PLmF8s166Hh6JTOyOB0R/exec";
 
-// Photo chunk size — 1500 chars per chunk keeps each URL well under 2000 chars
-const CHUNK_SIZE = 1500;
-
 // ── STATE ──────────────────────────────────────────────────────────────────────
 const state = {
   trainerName:"",
@@ -430,7 +427,7 @@ function jsonpFetch(url) {
   return new Promise((resolve, reject) => {
     const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*9999);
     const s  = document.createElement("script");
-    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout — check internet connection")); }, 30000);
+    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout — check internet connection")); }, 60000);
     window[cb] = d => { cleanup(); resolve(d); };
     function cleanup() {
       clearTimeout(t); delete window[cb];
@@ -715,11 +712,12 @@ async function openCamera() {
 function capturePhoto() {
   const v = document.getElementById("camera-preview");
   const c = document.createElement("canvas");
-  // Very small photo: 200x150, 30% quality → base64 ~8–12KB → safe for chunked JSONP
+  // Small photo: 200x150 pixels, 30% JPEG quality
+  // This keeps the base64 string small enough to send in one URL
   c.width = 200; c.height = 150;
   c.getContext("2d").drawImage(v, 0, 0, 200, 150);
   const full = c.toDataURL("image/jpeg", 0.30);
-  state.photoBase64 = full.split(",")[1];
+  state.photoBase64 = full.split(",")[1];  // strip the "data:image/jpeg;base64," prefix
 
   if (state.photoStream) state.photoStream.getTracks().forEach(t => t.stop());
   v.style.display = "none";
@@ -757,40 +755,9 @@ function setProgress(pct, text) {
   document.getElementById("btn-submit").textContent = text;
 }
 
-// ── SEND PHOTO IN CHUNKS via JSONP ────────────────────────────────────────────
-// A base64 photo can be 10,000–25,000 characters which is too long for a URL.
-// We split it into 1500-character pieces and send each piece separately.
-// Apps Script reassembles them using a shared session ID + chunk index.
-async function sendPhotoChunked(rowNum, uid, photoBase64) {
-  if (!photoBase64 || photoBase64.length < 50) return;
-
-  const sessionId = uid + "_" + rowNum + "_" + Date.now();
-  const total = Math.ceil(photoBase64.length / CHUNK_SIZE);
-
-  for (let i = 0; i < total; i++) {
-    const chunk = photoBase64.substring(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-    const chunkUrl = WEB_APP_URL
-      + "?action=photochunk"
-      + "&sessionId=" + encodeURIComponent(sessionId)
-      + "&rowNum="    + encodeURIComponent(rowNum)
-      + "&uid="       + encodeURIComponent(uid)
-      + "&idx="       + i
-      + "&total="     + total
-      + "&chunk="     + encodeURIComponent(chunk);
-
-    // We fire each chunk and don't wait for a response — attendance is already saved.
-    // If internet is slow a chunk might fail, but the row is never lost.
-    jsonpFetch(chunkUrl).catch(() => {});
-
-    // Small delay between chunks so we don't flood the server
-    await new Promise(r => setTimeout(r, 200));
-  }
-}
-
 // ── SUBMIT ────────────────────────────────────────────────────────────────────
-// Step 1: Save attendance row via JSONP (no photo) — get row number back
-// Step 2: Send photo in small chunks via JSONP (fire-and-forget)
-// Attendance is ALWAYS saved even if photo chunks fail.
+// KEY CHANGE: photo is now sent in the SAME request as attendance data.
+// No more chunking. One request = one row = URL always saved in column J.
 async function submitAttendance() {
   const btn = document.getElementById("btn-submit");
   const msg = document.getElementById("status-msg");
@@ -802,9 +769,9 @@ async function submitAttendance() {
   }
 
   try {
-    // ── STEP 1: Save attendance row (text data only, no photo) ──
-    setProgress(20, "Saving attendance...");
+    setProgress(30, "Saving attendance...");
 
+    // Build the URL with ALL data including the photo in one request
     const url = WEB_APP_URL
       + "?action=attendance"
       + "&uid="          + encodeURIComponent(state.uid          || "Unknown")
@@ -816,20 +783,14 @@ async function submitAttendance() {
       + "&entValue="     + encodeURIComponent(state.entValue     || "")
       + "&lat="          + encodeURIComponent(state.lat          || "0")
       + "&lng="          + encodeURIComponent(state.lng          || "0")
-      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"));
+      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"))
+      + "&photo="        + encodeURIComponent(state.photoBase64  || "");
+      // ↑ photo is sent here — same request, no chunks, no timing issues
 
+    setProgress(60, "Uploading...");
     const res = await jsonpFetch(url);
-    if (!res.success) throw new Error(res.error || "Failed to save attendance");
 
-    const rowNum = res.rowNum || 0;
-
-    // ── STEP 2: Send photo in chunks (fire-and-forget) ──────────
-    setProgress(60, "Uploading photo...");
-    if (state.photoBase64 && rowNum > 0) {
-      sendPhotoChunked(rowNum, state.uid || "unknown", state.photoBase64);
-      // Give chunks a moment to start sending before showing success
-      await new Promise(r => setTimeout(r, 1500));
-    }
+    if (!res.success) throw new Error(res.error || "Server returned an error");
 
     setProgress(100, "Done!");
 
@@ -840,6 +801,9 @@ async function submitAttendance() {
     const dateStr = state.timestamp
       ? state.timestamp.split(",")[0].trim()
       : new Date().toLocaleDateString("en-IN");
+    const photoNote = res.photoSaved
+      ? "✅ Photo saved successfully"
+      : "⚠️ Photo could not be saved (attendance row is saved)";
 
     setTimeout(() => {
       document.getElementById("progress-bar").style.display = "none";
@@ -858,6 +822,7 @@ async function submitAttendance() {
           "Attendance for <strong>" + trnDisplay + "</strong><br>" +
           "on <strong>" + dateStr + "</strong> has been saved." +
         "</div>" +
+        "<div style='margin-top:10px;font-size:12px;color:#555;'>" + photoNote + "</div>" +
         "<div style='margin-top:20px;'>" +
           "<button onclick='nextBeneficiary()' style='background:#0b78ba;color:white;border:none;" +
           "border-radius:8px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%;'>" +
