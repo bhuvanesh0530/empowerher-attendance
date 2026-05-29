@@ -200,7 +200,6 @@
     <span class="change-link" onclick="changeTrainer()">Change</span>
   </div>
 
-  <!-- STEP 0: TRAINER NAME -->
   <div class="step-card active" id="card-trainer">
     <div class="step-header">
       <div class="step-num">0</div>
@@ -215,7 +214,6 @@
             onclick="confirmTrainer()">✔ Confirm &amp; Start Scanning</button>
   </div>
 
-  <!-- STEP 1: BENEFICIARY QR -->
   <div class="step-card" id="card-beneficiary">
     <div class="step-header">
       <div class="step-num">1</div>
@@ -263,7 +261,6 @@
     </div>
   </div>
 
-  <!-- STEP 2: TRAINING QR -->
   <div class="step-card" id="card-training">
     <div class="step-header">
       <div class="step-num">2</div>
@@ -318,14 +315,12 @@
     </div>
   </div>
 
-  <!-- STEP 3: SUB-TRAINING QR -->
   <div class="step-card" id="card-subtraining">
     <div class="step-header">
       <div class="step-num">3</div>
       <div class="step-title">Scan Sub-Training QR Code</div>
     </div>
-    <div style="background:#e8f5e9;border-radius:8px;padding:10px 12px;
-                margin-bottom:10px;font-size:13px;color:#2e7d32;font-weight:600;">
+    <div style="background:#e8f5e9;border-radius:8px;padding:10px 12px; margin-bottom:10px;font-size:13px;color:#2e7d32;font-weight:600;">
       📋 SDTC detected — scan sub-training QR (e.g. Aari / Tailoring)
     </div>
     <div class="qr-placeholder" id="sub-placeholder">
@@ -370,7 +365,6 @@
     </div>
   </div>
 
-  <!-- STEP 4: LOCATION -->
   <div class="step-card" id="card-location">
     <div class="step-header">
       <div class="step-num">4</div>
@@ -384,7 +378,6 @@
     </div>
   </div>
 
-  <!-- STEP 5: PHOTO -->
   <div class="step-card" id="card-photo">
     <div class="step-header">
       <div class="step-num">5</div>
@@ -411,8 +404,6 @@
 
 <script>
 // ── CONFIG ─────────────────────────────────────────────────────────────────────
-// IMPORTANT: This must be your deployed Apps Script web app URL
-// (the one ending in /exec, NOT /dev)
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyXBilYPA_Cg8ReLun1OYiDLxfiE46-gMfyDo_I8gk3fs-2PLmF8s166Hh6JTOyOB0R/exec";
 
 // ── STATE ──────────────────────────────────────────────────────────────────────
@@ -424,51 +415,20 @@ const state = {
 };
 const scanners = { ben:null, trn:null, sub:null };
 
-// ── JSONP FETCH (for GET requests — no photo) ──────────────────────────────────
-// Used for: getmember lookup, saving attendance row (no photo in URL)
+// ── JSONP FETCH ────────────────────────────────────────────────────────────────
 function jsonpFetch(url) {
   return new Promise((resolve, reject) => {
     const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*9999);
     const s  = document.createElement("script");
-    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout — check internet connection")); }, 60000);
+    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 25000);
     window[cb] = d => { cleanup(); resolve(d); };
     function cleanup() {
       clearTimeout(t); delete window[cb];
       if (s.parentNode) s.parentNode.removeChild(s);
     }
-    s.onerror = () => { cleanup(); reject(new Error("Network error — check internet and try again")); };
+    s.onerror = () => { cleanup(); reject(new Error("Network error")); };
     s.src = url + (url.includes("?")?"&":"?") + "callback=" + cb;
     document.head.appendChild(s);
-  });
-}
-
-// ── POST FETCH (for sending photo — no URL length limit) ───────────────────────
-// This is the KEY FIX: photo is sent via POST body, not URL parameter.
-// POST has no length limit so the full base64 photo always arrives at Apps Script.
-function postFetch(url, bodyData) {
-  return new Promise((resolve, reject) => {
-    const formData = new FormData();
-    Object.keys(bodyData).forEach(key => formData.append(key, bodyData[key]));
-
-    const t = setTimeout(() => reject(new Error("Timeout uploading photo — check internet")), 90000);
-
-    fetch(url, {
-      method: "POST",
-      body: formData,
-      // NOTE: no-cors mode needed because Apps Script does not send CORS headers.
-      // With no-cors we cannot read the response, but the POST still arrives and runs.
-      mode: "no-cors"
-    })
-    .then(() => {
-      clearTimeout(t);
-      // With no-cors we get an opaque response — we can't read it.
-      // We resolve with a "sent" flag and trust Apps Script saved it.
-      resolve({ sent: true });
-    })
-    .catch(err => {
-      clearTimeout(t);
-      reject(new Error("Photo upload network error: " + err.message));
-    });
   });
 }
 
@@ -482,7 +442,7 @@ function showCard(id) {
   }, 100);
 }
 
-// ── STEP 0: TRAINER NAME ───────────────────────────────────────────────────────
+// ── STEP 0 ─────────────────────────────────────────────────────────────────────
 function confirmTrainer() {
   const name = document.getElementById("trainer-name-input").value.trim();
   if (!name) { alert("Please enter your name."); return; }
@@ -615,7 +575,7 @@ function setManual(which) {
   if (which==="sub") onSubScanSuccess(val);
 }
 
-// ── STEP 1: BENEFICIARY ────────────────────────────────────────────────────────
+// ── STEP 1 ────────────────────────────────────────────────────────────────────
 function startBenScanner() { startScanner("ben", onBenScanSuccess); }
 
 async function onBenScanSuccess(text) {
@@ -644,12 +604,12 @@ async function onBenScanSuccess(text) {
   setTimeout(() => showCard("card-training"), 600);
 }
 
-// ── STEP 2: TRAINING ──────────────────────────────────────────────────────────
+// ── STEP 2 ────────────────────────────────────────────────────────────────────
 function startTrnScanner() { startScanner("trn", onTrnScanSuccess); }
 
 function detectType(name) {
   const n = name.trim().toUpperCase();
-  if (n.startsWith("SDTC"))                               return "SDTC";
+  if (n.startsWith("SDTC"))                return "SDTC";
   if (n.startsWith("ENT 1.6") || n.startsWith("ENT 1.7")) return "Value";
   return "Normal";
 }
@@ -687,7 +647,7 @@ function onTrnScanSuccess(text) {
   }
 }
 
-// ── STEP 3: SUB TRAINING ──────────────────────────────────────────────────────
+// ── STEP 3 ────────────────────────────────────────────────────────────────────
 function startSubScanner() { startScanner("sub", onSubScanSuccess); }
 
 function onSubScanSuccess(text) {
@@ -721,8 +681,7 @@ function getLocation() {
       checkSubmitReady();
     },
     () => {
-      document.getElementById("loc-text").textContent =
-        "Location denied. Enable GPS and refresh.";
+      document.getElementById("loc-text").textContent = "Location denied. Enable GPS and refresh.";
     },
     { enableHighAccuracy:true, timeout:15000 }
   );
@@ -745,11 +704,10 @@ async function openCamera() {
 function capturePhoto() {
   const v = document.getElementById("camera-preview");
   const c = document.createElement("canvas");
-  // 320x240 at 50% JPEG quality — good balance of size vs clarity
-  c.width = 320; c.height = 240;
-  c.getContext("2d").drawImage(v, 0, 0, 320, 240);
-  const full = c.toDataURL("image/jpeg", 0.50);
-  state.photoBase64 = full.split(",")[1];  // strip the data:image/jpeg;base64, prefix
+  c.width = 240; c.height = 180;
+  c.getContext("2d").drawImage(v, 0, 0, 240, 180);
+  const full = c.toDataURL("image/jpeg", 0.4);
+  state.photoBase64 = full; // Keeps the structure clear for doGet processing
 
   if (state.photoStream) state.photoStream.getTracks().forEach(t => t.stop());
   v.style.display = "none";
@@ -771,193 +729,67 @@ function retakePhoto() {
 
 // ── SUBMIT READY CHECK ────────────────────────────────────────────────────────
 function checkSubmitReady() {
-  const ok =
-    !!state.uid &&
-    !!state.trainingName &&
-    (state.trainingType !== "SDTC"  || !!state.subTraining) &&
-    (state.trainingType !== "Value" || !!(document.getElementById("value-input").value.trim())) &&
-    !!state.lat &&
-    !!state.photoBase64;
+  let ok = !!state.uid && !!state.trainerName && !!state.trainingName && !!state.photoBase64;
+  if (state.trainingType === "SDTC" && !state.subTraining) ok = false;
+  if (state.trainingType === "Value") {
+    const val = document.getElementById("value-input").value.trim();
+    state.entValue = val;
+    if (!val) ok = false;
+  }
   document.getElementById("btn-submit").disabled = !ok;
 }
 
-function setProgress(pct, text) {
-  document.getElementById("progress-bar").style.display = "block";
-  document.getElementById("progress-fill").style.width = pct + "%";
-  document.getElementById("btn-submit").textContent = text;
-}
-
-// ── SUBMIT ────────────────────────────────────────────────────────────────────
-//
-// HOW THIS WORKS (THE FIX):
-//
-// STEP A — Save attendance row via JSONP (GET request, NO photo in URL)
-//           Apps Script returns the row number it just saved.
-//
-// STEP B — Send photo via POST (no URL length limit)
-//           Apps Script receives photo + rowNum, saves photo to Drive,
-//           then writes the URL back into column J of that row.
-//
-// WHY THIS FIXES IT:
-//   Old code put photo in the GET URL → URL too long → photo silently dropped
-//   New code sends photo in POST body → no length limit → always arrives
-//
+// ── REMAPPED DIRECT ATTENDANCE SUBMISSION ─────────────────────────────────────
 async function submitAttendance() {
-  const btn = document.getElementById("btn-submit");
-  const msg = document.getElementById("status-msg");
-  btn.disabled = true;
-  msg.style.display = "none";
+  document.getElementById("btn-submit").disabled = true;
+  document.getElementById("progress-bar").style.display = "block";
+  document.getElementById("progress-fill").style.width = "50%";
+  
+  const msgBox = document.getElementById("status-msg");
+  msgBox.style.display = "none";
 
-  if (state.trainingType === "Value") {
-    state.entValue = document.getElementById("value-input").value.trim();
-  }
+  // Build data parameters inside a clean URL string execution line
+  let url = WEB_APP_URL + "?action=attendance" +
+    "&uid=" + encodeURIComponent(state.uid) +
+    "&name=" + encodeURIComponent(state.name || "") +
+    "&trainerName=" + encodeURIComponent(state.trainerName) +
+    "&trainingName=" + encodeURIComponent(state.trainingName) +
+    "&trainingType=" + encodeURIComponent(state.trainingType) +
+    "&subTraining=" + encodeURIComponent(state.subTraining || "") +
+    "&entValue=" + encodeURIComponent(state.entValue || "") +
+    "&lat=" + encodeURIComponent(state.lat || "") +
+    "&lng=" + encodeURIComponent(state.lng || "") +
+    "&timestamp=" + encodeURIComponent(state.timestamp || "") +
+    "&photo=" + encodeURIComponent(state.photoBase64);
 
   try {
-    // ── STEP A: Save attendance row (no photo) ────────────────────────────────
-    setProgress(20, "Saving attendance...");
-
-    const rowUrl = WEB_APP_URL
-      + "?action=attendance"
-      + "&uid="          + encodeURIComponent(state.uid          || "Unknown")
-      + "&name="         + encodeURIComponent(state.name         || "Unknown")
-      + "&trainerName="  + encodeURIComponent(state.trainerName  || "Unknown")
-      + "&trainingName=" + encodeURIComponent(state.trainingName || "Unknown")
-      + "&trainingType=" + encodeURIComponent(state.trainingType || "Normal")
-      + "&subTraining="  + encodeURIComponent(state.subTraining  || "")
-      + "&entValue="     + encodeURIComponent(state.entValue     || "")
-      + "&lat="          + encodeURIComponent(state.lat          || "0")
-      + "&lng="          + encodeURIComponent(state.lng          || "0")
-      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"));
-      // NOTE: no photo here — it is sent separately below via POST
-
-    setProgress(40, "Saving row...");
-    const rowRes = await jsonpFetch(rowUrl);
-
-    if (!rowRes.success) throw new Error(rowRes.error || "Failed to save attendance row");
-
-    const savedRowNum = rowRes.rowNum;
-
-    // ── STEP B: Upload photo via POST ─────────────────────────────────────────
-    setProgress(60, "Uploading photo...");
-
-    let photoSaved = false;
-    try {
-      await postFetch(WEB_APP_URL, {
-        action:   "savephoto",
-        rowNum:   String(savedRowNum),
-        uid:      state.uid || "Unknown",
-        photo:    state.photoBase64 || ""
-      });
-      // With no-cors POST we can't read the response, but Apps Script will have run.
-      // We assume success if no network error was thrown.
-      photoSaved = true;
-    } catch(photoErr) {
-      // Photo upload failed — attendance row is still saved, just no photo URL
-      console.warn("Photo upload failed:", photoErr.message);
-      photoSaved = false;
-    }
-
-    setProgress(100, "Done!");
-
-    const displayName = (state.name || "Friend").trim();
-    const trnDisplay  = state.subTraining
-      ? state.trainingName + " — " + state.subTraining
-      : state.trainingName || "the training";
-    const dateStr = state.timestamp
-      ? state.timestamp.split(",")[0].trim()
-      : new Date().toLocaleDateString("en-IN");
-    const photoNote = photoSaved
-      ? "✅ Photo uploaded successfully"
-      : "⚠️ Photo could not be uploaded (attendance row is saved — row " + savedRowNum + ")";
-
-    setTimeout(() => {
-      document.getElementById("progress-bar").style.display = "none";
-      btn.style.display = "none";
-      document.querySelectorAll(".step-card").forEach(c => c.style.display = "none");
+    const res = await jsonpFetch(url);
+    document.getElementById("progress-fill").style.width = "100%";
+    
+    if (res.success) {
+      msgBox.className = "status-msg success";
+      msgBox.innerHTML = `
+        <div style="font-size:48px; margin-bottom:15px;">🎉</div>
+        <h2 style="margin-bottom:10px;">Attendance Saved Successfully!</h2>
+        <p style="color:#666; font-size:14px;">Photo URL created and attached to row ${res.rowNum || ""}.</p>
+        <button class="btn btn-primary" onclick="window.location.reload()" style="margin-top:20px; width:100%; justify-content:center;">Next Attendance</button>
+      `;
       document.getElementById("info-card").style.display = "none";
-
-      msg.className = "status-msg success";
-      msg.style.display = "block";
-      window.scrollTo({top:0, behavior:"smooth"});
-
-      msg.innerHTML =
-        "<div style='font-size:40px;margin-bottom:8px;'>🎉</div>" +
-        "<div style='font-size:18px;font-weight:800;color:#1b5e20;margin-bottom:6px;'>Thank You, " + displayName + "!</div>" +
-        "<div style='font-size:14px;font-weight:500;color:#2e7d32;line-height:1.6;'>" +
-          "Attendance for <strong>" + trnDisplay + "</strong><br>" +
-          "on <strong>" + dateStr + "</strong> has been saved." +
-        "</div>" +
-        "<div style='margin-top:10px;font-size:12px;color:#555;'>" + photoNote + "</div>" +
-        "<div style='margin-top:20px;'>" +
-          "<button onclick='nextBeneficiary()' style='background:#0b78ba;color:white;border:none;" +
-          "border-radius:8px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%;'>" +
-          "👤 Next Beneficiary</button>" +
-        "</div>" +
-        "<div style='margin-top:10px;font-size:12px;color:#888;'>Trainer: <strong>" + state.trainerName + "</strong></div>";
-    }, 500);
-
-  } catch(e) {
+      document.getElementById("btn-submit").style.display = "none";
+      // Clear up operational cards
+      ["card-beneficiary", "card-training", "card-subtraining", "card-location", "card-photo"].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = "none";
+      });
+    } else {
+      throw new Error(res.error || "Submission failed");
+    }
+  } catch(err) {
     document.getElementById("progress-bar").style.display = "none";
-    msg.className = "status-msg error";
-    msg.textContent = "❌ ERROR: " + e.message;
-    msg.style.display = "block";
-    btn.disabled = false;
-    btn.textContent = "↩ Retry Submit";
+    msgBox.className = "status-msg error";
+    msgBox.textContent = "❌ Error: " + err.message;
+    document.getElementById("btn-submit").disabled = false;
   }
-}
-
-// ── NEXT BENEFICIARY ──────────────────────────────────────────────────────────
-function nextBeneficiary() {
-  state.uid = ""; state.name = ""; state.shg = ""; state.cln = "";
-  state.trainingName = ""; state.trainingType = ""; state.subTraining = ""; state.entValue = "";
-  state.lat = null; state.lng = null; state.timestamp = "";
-  state.photoBase64 = ""; state.photoStream = null;
-
-  ["ben","trn","sub"].forEach(w => {
-    if (scanners[w]) { try { scanners[w].stop(); } catch(e) {} scanners[w] = null; }
-  });
-
-  document.getElementById("display-name").textContent  = "—";
-  document.getElementById("display-uid").textContent   = "Scan beneficiary QR to begin";
-  document.getElementById("display-extra").textContent = "";
-  document.getElementById("info-card").style.display   = "flex";
-
-  const msg = document.getElementById("status-msg");
-  msg.style.display = "none"; msg.className = "status-msg";
-  const btn = document.getElementById("btn-submit");
-  btn.style.display = "none"; btn.classList.remove("show");
-  btn.disabled = true; btn.textContent = "✅ Submit Attendance";
-  document.getElementById("progress-bar").style.display = "none";
-
-  ["ben","trn","sub"].forEach(w => {
-    document.getElementById(w+"-scan-result").classList.remove("show");
-    document.getElementById(w+"-qr-wrap").style.display   = "none";
-    document.getElementById(w+"-placeholder").style.display = "flex";
-    document.getElementById("btn-"+w+"-scan").disabled    = false;
-    document.getElementById(w+"-error-box").style.display  = "none";
-    document.getElementById(w+"-manual-row").style.display = "none";
-    document.getElementById(w+"-manual-input").value       = "";
-  });
-  document.getElementById("btn-ben-scan").textContent = "📷 Scan Beneficiary QR";
-  document.getElementById("btn-trn-scan").textContent = "📷 Scan Training QR";
-  document.getElementById("btn-sub-scan").textContent = "📷 Scan Sub-Training QR";
-  document.getElementById("value-input-box").style.display = "none";
-  document.getElementById("value-input").value = "";
-
-  document.getElementById("photo-preview").style.display   = "none";
-  document.getElementById("camera-preview").style.display  = "none";
-  document.getElementById("btn-open-camera").style.display = "inline-flex";
-  document.getElementById("btn-capture").style.display     = "none";
-  document.getElementById("btn-retake").style.display      = "none";
-
-  document.getElementById("loc-status").classList.remove("success");
-  document.getElementById("loc-text").textContent = "Requesting location...";
-
-  document.querySelectorAll(".step-card").forEach(c => c.classList.remove("active"));
-  showCard("card-beneficiary");
-
-  getLocation();
-  window.scrollTo({top:0, behavior:"smooth"});
 }
 </script>
 </body>
