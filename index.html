@@ -427,15 +427,66 @@ function jsonpFetch(url) {
   return new Promise((resolve, reject) => {
     const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*9999);
     const s  = document.createElement("script");
-    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 25000);
+    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout — check internet and try again")); }, 30000);
     window[cb] = d => { cleanup(); resolve(d); };
     function cleanup() {
       clearTimeout(t); delete window[cb];
       if (s.parentNode) s.parentNode.removeChild(s);
     }
-    s.onerror = () => { cleanup(); reject(new Error("Network error")); };
+    s.onerror = () => { cleanup(); reject(new Error("Network error — check internet connection")); };
     s.src = url + (url.includes("?")?"&":"?") + "callback=" + cb;
     document.head.appendChild(s);
+  });
+}
+
+// ── PHOTO POST via hidden form (bypasses CORS completely) ─────────────────────
+// This is the only reliable way to POST binary data to Apps Script from mobile.
+function postPhotoViaForm(rowNum, uid, photoBase64) {
+  return new Promise((resolve) => {
+    // Create a hidden iframe to catch the form response
+    const iframeName = "photo_iframe_" + Date.now();
+    const iframe = document.createElement("iframe");
+    iframe.name = iframeName;
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
+    // Create a hidden form
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = WEB_APP_URL;
+    form.target = iframeName;
+    form.style.display = "none";
+
+    // Add fields
+    const fields = { action:"photo", rowNum: String(rowNum), uid: uid, photo: photoBase64 };
+    Object.entries(fields).forEach(([k, v]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = k;
+      input.value = v;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+
+    // Resolve after 8 seconds regardless — attendance is already saved
+    const t = setTimeout(() => {
+      cleanup();
+      resolve("timeout");
+    }, 8000);
+
+    iframe.onload = () => {
+      clearTimeout(t);
+      cleanup();
+      resolve("done");
+    };
+
+    function cleanup() {
+      try { document.body.removeChild(form); } catch(e) {}
+      try { document.body.removeChild(iframe); } catch(e) {}
+    }
+
+    form.submit();
   });
 }
 
@@ -616,7 +667,7 @@ function startTrnScanner() { startScanner("trn", onTrnScanSuccess); }
 
 function detectType(name) {
   const n = name.trim().toUpperCase();
-  if (n.startsWith("SDTC"))                             return "SDTC";
+  if (n.startsWith("SDTC"))                               return "SDTC";
   if (n.startsWith("ENT 1.6") || n.startsWith("ENT 1.7")) return "Value";
   return "Normal";
 }
@@ -712,6 +763,7 @@ async function openCamera() {
 function capturePhoto() {
   const v = document.getElementById("camera-preview");
   const c = document.createElement("canvas");
+  // 240x180 at 40% quality — keeps base64 small (~15KB)
   c.width = 240; c.height = 180;
   c.getContext("2d").drawImage(v, 0, 0, 240, 180);
   const full = c.toDataURL("image/jpeg", 0.4);
@@ -753,7 +805,9 @@ function setProgress(pct, text) {
   document.getElementById("btn-submit").textContent = text;
 }
 
-// ── SUBMIT — single JSONP GET, photo included inline ──────────────────────────
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+// Step 1: JSONP GET — saves attendance row (no photo), gets rowNum back
+// Step 2: Hidden form POST — sends photo using rowNum (bypasses CORS on mobile)
 async function submitAttendance() {
   const btn = document.getElementById("btn-submit");
   const msg = document.getElementById("status-msg");
@@ -765,9 +819,9 @@ async function submitAttendance() {
   }
 
   try {
-    setProgress(30, "Saving attendance...");
+    // ── STEP 1: Save attendance row via JSONP GET ───────────
+    setProgress(20, "Saving attendance...");
 
-    // ✅ Photo sent in same request — no separate POST needed
     const url = WEB_APP_URL
       + "?action=attendance"
       + "&uid="          + encodeURIComponent(state.uid          || "Unknown")
@@ -779,11 +833,19 @@ async function submitAttendance() {
       + "&entValue="     + encodeURIComponent(state.entValue     || "")
       + "&lat="          + encodeURIComponent(state.lat          || "0")
       + "&lng="          + encodeURIComponent(state.lng          || "0")
-      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"))
-      + "&photo="        + encodeURIComponent(state.photoBase64  || "");  // ✅ photo inline
+      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"));
 
     const res = await jsonpFetch(url);
     if (!res.success) throw new Error(res.error || "Failed to save attendance");
+
+    const rowNum = res.rowNum || 0;
+
+    // ── STEP 2: Upload photo via hidden form POST ───────────
+    // Hidden form POST works on all mobile browsers without CORS issues
+    setProgress(60, "Uploading photo...");
+    if (state.photoBase64 && rowNum > 0) {
+      await postPhotoViaForm(rowNum, state.uid || "unknown", state.photoBase64);
+    }
 
     setProgress(100, "Done!");
 
