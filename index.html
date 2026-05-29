@@ -320,7 +320,8 @@
       <div class="step-num">3</div>
       <div class="step-title">Scan Sub-Training QR Code</div>
     </div>
-    <div style="background:#e8f5e9;border-radius:8px;padding:10px 12px; margin-bottom:10px;font-size:13px;color:#2e7d32;font-weight:600;">
+    <div style="background:#e8f5e9;border-radius:8px;padding:10px 12px;
+                margin-bottom:10px;font-size:13px;color:#2e7d32;font-weight:600;">
       📋 SDTC detected — scan sub-training QR (e.g. Aari / Tailoring)
     </div>
     <div class="qr-placeholder" id="sub-placeholder">
@@ -442,7 +443,7 @@ function showCard(id) {
   }, 100);
 }
 
-// ── STEP 0 ─────────────────────────────────────────────────────────────────────
+// ── STEP 0: TRAINER NAME ───────────────────────────────────────────────────────
 function confirmTrainer() {
   const name = document.getElementById("trainer-name-input").value.trim();
   if (!name) { alert("Please enter your name."); return; }
@@ -560,6 +561,7 @@ function retryScanner(which) {
   if (which==="sub") setTimeout(startSubScanner, 300);
 }
 
+// ── MANUAL SUBMISSIONS ────────────────────────────────────────────────────────
 function toggleManual(which) {
   const r = document.getElementById(which+"-manual-row");
   r.style.display = (r.style.display==="flex") ? "none" : "flex";
@@ -575,7 +577,7 @@ function setManual(which) {
   if (which==="sub") onSubScanSuccess(val);
 }
 
-// ── STEP 1 ────────────────────────────────────────────────────────────────────
+// ── STEP 1: BENEFICIARY ────────────────────────────────────────────────────────
 function startBenScanner() { startScanner("ben", onBenScanSuccess); }
 
 async function onBenScanSuccess(text) {
@@ -604,12 +606,12 @@ async function onBenScanSuccess(text) {
   setTimeout(() => showCard("card-training"), 600);
 }
 
-// ── STEP 2 ────────────────────────────────────────────────────────────────────
+// ── STEP 2: TRAINING ──────────────────────────────────────────────────────────
 function startTrnScanner() { startScanner("trn", onTrnScanSuccess); }
 
 function detectType(name) {
   const n = name.trim().toUpperCase();
-  if (n.startsWith("SDTC"))                return "SDTC";
+  if (n.startsWith("SDTC"))                               return "SDTC";
   if (n.startsWith("ENT 1.6") || n.startsWith("ENT 1.7")) return "Value";
   return "Normal";
 }
@@ -647,7 +649,7 @@ function onTrnScanSuccess(text) {
   }
 }
 
-// ── STEP 3 ────────────────────────────────────────────────────────────────────
+// ── STEP 3: SUB TRAINING ──────────────────────────────────────────────────────
 function startSubScanner() { startScanner("sub", onSubScanSuccess); }
 
 function onSubScanSuccess(text) {
@@ -681,7 +683,8 @@ function getLocation() {
       checkSubmitReady();
     },
     () => {
-      document.getElementById("loc-text").textContent = "Location denied. Enable GPS and refresh.";
+      document.getElementById("loc-text").textContent =
+        "Location denied. Enable GPS and refresh.";
     },
     { enableHighAccuracy:true, timeout:15000 }
   );
@@ -707,7 +710,7 @@ function capturePhoto() {
   c.width = 240; c.height = 180;
   c.getContext("2d").drawImage(v, 0, 0, 240, 180);
   const full = c.toDataURL("image/jpeg", 0.4);
-  state.photoBase64 = full; // Keeps the structure clear for doGet processing
+  state.photoBase64 = full;
 
   if (state.photoStream) state.photoStream.getTracks().forEach(t => t.stop());
   v.style.display = "none";
@@ -729,65 +732,67 @@ function retakePhoto() {
 
 // ── SUBMIT READY CHECK ────────────────────────────────────────────────────────
 function checkSubmitReady() {
-  let ok = !!state.uid && !!state.trainerName && !!state.trainingName && !!state.photoBase64;
-  if (state.trainingType === "SDTC" && !state.subTraining) ok = false;
   if (state.trainingType === "Value") {
-    const val = document.getElementById("value-input").value.trim();
-    state.entValue = val;
-    if (!val) ok = false;
+    state.entValue = document.getElementById("value-input").value.trim();
   }
+  const ok =
+    !!state.uid &&
+    !!state.trainingName &&
+    (state.trainingType !== "SDTC"  || !!state.subTraining) &&
+    (state.trainingType !== "Value" || !!state.entValue) &&
+    !!state.lat &&
+    !!state.photoBase64;
   document.getElementById("btn-submit").disabled = !ok;
 }
 
-// ── REMAPPED DIRECT ATTENDANCE SUBMISSION ─────────────────────────────────────
+// ── TRANSACTION SUBMISSION SYSTEM ─────────────────────────────────────────────
 async function submitAttendance() {
   document.getElementById("btn-submit").disabled = true;
   document.getElementById("progress-bar").style.display = "block";
-  document.getElementById("progress-fill").style.width = "50%";
-  
-  const msgBox = document.getElementById("status-msg");
-  msgBox.style.display = "none";
+  const bar = document.getElementById("progress-fill");
+  bar.style.width = "30%";
 
-  // Build data parameters inside a clean URL string execution line
-  let url = WEB_APP_URL + "?action=attendance" +
+  const status = document.getElementById("status-msg");
+  status.style.display = "block";
+  status.className = "status-msg";
+  status.textContent = "Saving attendance data & packaging image stream...";
+
+  if (state.trainingType === "Value") {
+    state.entValue = document.getElementById("value-input").value.trim();
+  }
+
+  // Inject image base64 stream directly into parameter matrix mapping GET
+  const submissionUrl = WEB_APP_URL + 
+    "?action=attendance" +
     "&uid=" + encodeURIComponent(state.uid) +
-    "&name=" + encodeURIComponent(state.name || "") +
+    "&name=" + encodeURIComponent(state.name || "Unknown") +
     "&trainerName=" + encodeURIComponent(state.trainerName) +
     "&trainingName=" + encodeURIComponent(state.trainingName) +
     "&trainingType=" + encodeURIComponent(state.trainingType) +
     "&subTraining=" + encodeURIComponent(state.subTraining || "") +
     "&entValue=" + encodeURIComponent(state.entValue || "") +
-    "&lat=" + encodeURIComponent(state.lat || "") +
-    "&lng=" + encodeURIComponent(state.lng || "") +
-    "&timestamp=" + encodeURIComponent(state.timestamp || "") +
+    "&lat=" + encodeURIComponent(state.lat) +
+    "&lng=" + encodeURIComponent(state.lng) +
+    "&timestamp=" + encodeURIComponent(state.timestamp) +
     "&photo=" + encodeURIComponent(state.photoBase64);
 
+  bar.style.width = "60%";
+
   try {
-    const res = await jsonpFetch(url);
-    document.getElementById("progress-fill").style.width = "100%";
+    const response = await jsonpFetch(submissionUrl);
+    bar.style.width = "100%";
     
-    if (res.success) {
-      msgBox.className = "status-msg success";
-      msgBox.innerHTML = `
-        <div style="font-size:48px; margin-bottom:15px;">🎉</div>
-        <h2 style="margin-bottom:10px;">Attendance Saved Successfully!</h2>
-        <p style="color:#666; font-size:14px;">Photo URL created and attached to row ${res.rowNum || ""}.</p>
-        <button class="btn btn-primary" onclick="window.location.reload()" style="margin-top:20px; width:100%; justify-content:center;">Next Attendance</button>
-      `;
-      document.getElementById("info-card").style.display = "none";
+    if (response && response.success) {
+      status.className = "status-msg success";
+      status.innerHTML = "<h2>Attendance Saved Successfully! 🎉</h2><br><p>The photo link has been stored natively in Google Drive folder matching Column J.</p><br><button class='btn btn-primary' onclick='window.location.reload()'>Scan Next Member</button>";
       document.getElementById("btn-submit").style.display = "none";
-      // Clear up operational cards
-      ["card-beneficiary", "card-training", "card-subtraining", "card-location", "card-photo"].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.style.display = "none";
-      });
     } else {
-      throw new Error(res.error || "Submission failed");
+      throw new Error(response.error || "Execution thread rejected record mapping.");
     }
-  } catch(err) {
-    document.getElementById("progress-bar").style.display = "none";
-    msgBox.className = "status-msg error";
-    msgBox.textContent = "❌ Error: " + err.message;
+  } catch (err) {
+    bar.style.width = "0%";
+    status.className = "status-msg error";
+    status.textContent = "Submission Failed: " + err.message;
     document.getElementById("btn-submit").disabled = false;
   }
 }
