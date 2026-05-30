@@ -1,276 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>EmpowerHer — Trainer Attendance</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root {
-  --ink:       #0D1B2A;
-  --mid:       #3D5A73;
-  --muted:     #7A93A8;
-  --border:    #D6E4EE;
-  --surface:   #F2F7FA;
-  --card:      #FFFFFF;
-  --accent:    #0B6EBB;
-  --accent2:   #0A8A5C;
-  --warn:      #E07A00;
-  --danger:    #C0392B;
-  --sdtc:      #6B46C1;
-  --value-clr: #C05621;
-  --r:         12px;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>EmpowerHer Attendance</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
 
-/* TOP BAR */
-.topbar{
-  background:linear-gradient(135deg,#0C447C 0%,#185FA5 55%,#378ADD 100%);
-  color:white;padding:14px 16px;
-  display:flex;align-items:center;gap:10px;
-  font-size:17px;font-weight:700;
-  box-shadow:0 2px 6px rgba(0,0,0,0.2);
-  position:sticky;top:0;z-index:100;
-}
-.topbar-sub{color:rgba(255,255,255,.7);font-size:11px;margin-left:auto;font-weight:500;}
+    .app-bar {
+      background: linear-gradient(135deg, #0C447C 0%, #185FA5 55%, #378ADD 100%);
+      color: white; padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 17px; font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      position: sticky; top: 0; z-index: 100;
+    }
 
-/* CONTAINER */
-.wrap{max-width:480px;margin:0 auto;padding:16px;}
+    .container { max-width: 480px; margin: 0 auto; padding: 16px; }
 
-/* MEMBER HERO */
-.member-hero{
-  background:var(--card);border-radius:var(--r);
-  padding:14px 16px;margin-bottom:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,.07);
-  display:flex;align-items:center;gap:12px;
-}
-.mh-avatar{
-  width:46px;height:46px;border-radius:50%;
-  background:linear-gradient(135deg,#e8f4fd,#c3dff5);
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
-.mh-name{font-weight:800;font-size:15px;color:var(--ink);}
-.mh-uid{font-size:12px;color:var(--muted);margin-top:2px;}
-.mh-extra{font-size:11px;color:var(--accent);font-weight:700;margin-top:3px;}
+    .info-card {
+      background: white; border-radius: 12px; padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .avatar {
+      width: 48px; height: 48px; background: #e8f4fd; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .member-name { font-weight: 700; font-size: 16px; color: #1a1a1a; }
+    .member-uid  { font-size: 13px; color: #666; margin-top: 2px; }
+    .member-sub  { font-size: 12px; color: #0b78ba; font-weight: 600; margin-top: 2px; }
 
-/* TRAINER STRIP */
-.trainer-strip{
-  background:#E8F4FF;border-radius:8px;padding:9px 14px;
-  margin-bottom:14px;display:none;
-  align-items:center;gap:8px;font-size:13px;color:var(--accent);font-weight:700;
-}
-.trainer-strip.on{display:flex;}
-.trainer-strip .chg{margin-left:auto;font-size:12px;text-decoration:underline;cursor:pointer;font-weight:600;}
+    .trainer-badge {
+      background: #e8f4fd; border-radius: 8px; padding: 8px 12px;
+      font-size: 13px; color: #0C447C; font-weight: 600;
+      margin-bottom: 14px; display: none; align-items: center; gap: 8px;
+    }
+    .trainer-badge.show { display: flex; }
+    .trainer-badge .change-link {
+      margin-left: auto; font-size: 12px; color: #0b78ba;
+      text-decoration: underline; cursor: pointer; font-weight: 600;
+    }
 
-/* STEP CARD */
-.step{
-  background:var(--card);border-radius:var(--r);padding:18px;
-  box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:14px;
-  display:none;animation:slideIn .25s ease;
-}
-.step.on{display:block;}
-@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .step-card {
+      background: white; border-radius: 12px; padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 14px;
+      display: none;
+    }
+    .step-card.active { display: block; }
 
-.step-hd{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
-.step-num{
-  width:28px;height:28px;border-radius:50%;background:var(--accent);
-  color:#fff;font-size:13px;font-weight:800;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
-.step-title{font-size:15px;font-weight:700;color:var(--ink);}
+    .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .step-num {
+      width: 28px; height: 28px; background: #0b78ba; color: white;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px; flex-shrink: 0;
+    }
+    .step-title { font-weight: 600; font-size: 15px; color: #333; }
 
-/* INPUT */
-label.lbl{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
-input.field{
-  width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:9px;
-  font-size:15px;font-family:inherit;outline:none;color:var(--ink);
-  transition:border-color .2s;
-}
-input.field:focus{border-color:var(--accent);}
+    .qr-placeholder {
+      width: 100%; height: 200px; background: #f8fbff;
+      border: 2px dashed #0b78ba; border-radius: 8px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+    }
+    .qr-placeholder p { color: #999; font-size: 13px; text-align: center; padding: 0 16px; }
 
-/* BUTTONS */
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:7px;
-  padding:11px 18px;border:none;border-radius:9px;
-  font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;
-  transition:all .18s;
-}
-.btn:disabled{opacity:.45;cursor:not-allowed;}
-.btn-primary{background:var(--accent);color:#fff;}
-.btn-primary:not(:disabled):hover{background:#0A5FA5;transform:translateY(-1px);}
-.btn-ghost{background:var(--surface);color:var(--mid);border:1px solid var(--border);}
-.btn-ghost:hover{background:var(--border);}
-.btn-full{width:100%;}
-.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+    .qr-wrap {
+      position: relative; width: 100%; height: 240px;
+      background: #000; border-radius: 8px; overflow: hidden; display: none;
+    }
+    .qr-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .qr-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center; pointer-events: none;
+    }
+    .qr-frame {
+      width: 180px; height: 180px; border: 3px solid #fff; border-radius: 12px;
+      box-shadow: 0 0 0 2000px rgba(0,0,0,0.5); position: relative; overflow: hidden;
+    }
+    .qr-line {
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, #0b78ba, transparent);
+      animation: scan 1.8s linear infinite;
+    }
+    @keyframes scan { 0%{top:0} 100%{top:calc(100% - 3px)} }
+    .qr-hint {
+      position: absolute; bottom: 10px; width: 100%;
+      text-align: center; color: rgba(255,255,255,0.85); font-size: 12px;
+    }
 
-/* QR SCANNER */
-.qr-shell{
-  background:var(--surface);border:2px dashed var(--border);
-  border-radius:10px;padding:28px 20px;
-  display:flex;flex-direction:column;align-items:center;gap:10px;
-  text-align:center;
-}
-.qr-shell p{font-size:13px;color:var(--muted);}
-.qr-live{position:relative;width:100%;border-radius:10px;overflow:hidden;background:#000;display:none;}
-.qr-live video{width:100%;display:block;}
-.qr-frame-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-.qr-frame{
-  width:180px;height:180px;border:3px solid #fff;border-radius:12px;
-  box-shadow:0 0 0 2000px rgba(0,0,0,.5);
-  position:relative;overflow:hidden;
-}
-.qr-scan-line{
-  position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,transparent,#0b78ba,transparent);
-  animation:scanLine 1.8s linear infinite;
-}
-@keyframes scanLine{0%{top:0}100%{top:calc(100% - 3px)}}
-.qr-hint{position:absolute;bottom:8px;width:100%;text-align:center;color:rgba(255,255,255,.8);font-size:12px;}
+    .scan-result {
+      background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px;
+      padding: 10px 14px; display: none; align-items: center; gap: 8px; margin-top: 10px;
+    }
+    .scan-result.show { display: flex; }
+    .scan-result span { color: #2e7d32; font-weight: 600; font-size: 14px; }
 
-/* RESULT PILL */
-.result-pill{
-  display:none;align-items:center;gap:8px;
-  background:#EDFAF3;border:1px solid #4CAF50;border-radius:8px;
-  padding:10px 14px;margin-top:10px;
-}
-.result-pill.on{display:flex;}
-.result-pill span{color:#2e7d32;font-weight:700;font-size:14px;}
+    .type-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; margin-top: 6px;
+    }
+    .type-normal { background: #e3f2fd; color: #1565c0; }
+    .type-sdtc   { background: #e8f5e9; color: #2e7d32; }
+    .type-value  { background: #fff3e0; color: #e65100; }
 
-/* ERROR BOX */
-.err-box{
-  background:#FFF5F5;border:1px solid #FCA5A5;border-radius:8px;
-  padding:12px;margin-top:10px;display:none;
-}
-.err-box p{color:var(--danger);font-size:13px;margin-bottom:8px;}
+    .value-input-box { margin-top: 10px; display: none; }
+    .value-input-box label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; }
+    .value-input-box input {
+      width: 100%; padding: 12px; border: 2px solid #0b78ba;
+      border-radius: 8px; font-size: 16px; font-weight: 600; color: #0C447C; outline: none;
+    }
 
-/* MANUAL ROW */
-.manual-row{display:none;gap:8px;margin-top:10px;}
-.manual-row input{flex:1;}
-.manual-row button{
-  padding:10px 14px;background:var(--accent);color:#fff;
-  border:none;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;
-}
+    .loc-status {
+      padding: 10px 14px; border-radius: 8px; font-size: 14px;
+      background: #fff3e0; border: 1px solid #ff9800; color: #e65100;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .loc-status.success { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
 
-/* TYPE BADGE */
-.type-badge{
-  display:inline-block;padding:3px 10px;border-radius:20px;
-  font-size:11px;font-weight:800;margin-top:5px;letter-spacing:.3px;
-}
-.tb-normal{background:#E3F2FD;color:#1565C0;}
-.tb-sdtc{background:#F3E8FF;color:var(--sdtc);}
-.tb-value{background:#FFF3E0;color:var(--value-clr);}
+    #camera-preview {
+      width: 100%; border-radius: 8px; background: #000;
+      max-height: 200px; object-fit: cover; display: none;
+    }
+    #photo-preview {
+      width: 100%; border-radius: 8px; max-height: 200px;
+      object-fit: cover; display: none; border: 2px solid #4caf50;
+    }
 
-/* VALUE ENTRY */
-.value-entry{margin-top:12px;display:none;}
+    .btn {
+      padding: 11px 18px; border: none; border-radius: 8px; cursor: pointer;
+      font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px;
+      transition: opacity 0.15s;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary   { background: #0b78ba; color: white; }
+    .btn-secondary { background: #e0e0e0; color: #333; }
+    .btn-warning   { background: #ff9800; color: white; }
 
-/* SDTC NOTE */
-.sdtc-note{
-  background:#F3E8FF;border-radius:8px;padding:10px 12px;
-  font-size:13px;color:var(--sdtc);font-weight:700;margin-bottom:12px;
-}
+    .btn-success {
+      background: linear-gradient(135deg, #1b5e20, #2e7d32);
+      color: white; width: 100%;
+      justify-content: center; font-size: 16px; padding: 16px;
+      border: none; cursor: pointer; border-radius: 10px; margin-top: 8px;
+      display: none; font-weight: 700;
+      box-shadow: 0 4px 12px rgba(46,125,50,0.35);
+    }
+    .btn-success.show { display: flex; }
+    .btn-success:disabled { background: #bdbdbd; cursor: not-allowed; box-shadow: none; }
 
-/* LOCATION */
-.loc-box{
-  padding:12px 14px;border-radius:9px;font-size:14px;
-  background:#FFF8EE;border:1px solid #FBBF24;color:var(--warn);
-  display:flex;align-items:center;gap:8px;
-}
-.loc-box.ok{background:#EDFAF3;border-color:#4CAF50;color:#1b5e20;}
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .camera-controls { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 
-/* PHOTO */
-.photo-area{display:flex;flex-direction:column;gap:10px;}
-#vid-preview{width:100%;border-radius:8px;background:#000;display:none;}
-#img-preview{width:100%;border-radius:8px;border:2px solid var(--accent2);display:none;max-height:200px;object-fit:cover;}
-.photo-note{font-size:11px;color:var(--muted);text-align:center;display:none;}
+    .error-box {
+      background: #ffebee; border: 1px solid #ef9a9a; border-radius: 8px;
+      padding: 12px 14px; margin-top: 10px; display: none;
+    }
+    .error-box p { color: #c62828; font-size: 13px; margin-bottom: 8px; }
 
-/* PROGRESS */
-.prog-wrap{margin-top:12px;display:none;}
-.prog-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),#41B3F5);border-radius:4px;transition:width .4s;}
-.prog-lbl{text-align:center;font-size:12px;color:var(--accent);font-weight:700;margin-top:6px;}
+    .manual-row { display: none; margin-top: 10px; gap: 8px; flex-direction: row; }
+    .manual-row input {
+      flex: 1; padding: 10px 12px; border: 1px solid #ccc;
+      border-radius: 8px; font-size: 14px;
+    }
+    .manual-row button {
+      padding: 10px 14px; background: #0b78ba; color: white;
+      border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
 
-/* SUCCESS */
-.success-screen{
-  display:none;background:var(--card);border-radius:16px;
-  padding:36px 24px;text-align:center;margin-top:8px;
-  box-shadow:0 4px 24px rgba(0,0,0,.10);
-}
-.success-screen.on{display:block;}
-.suc-icon{font-size:52px;margin-bottom:8px;}
-.suc-head{font-size:20px;font-weight:800;color:#1b5e20;}
-.suc-body{font-size:14px;color:var(--mid);margin-top:8px;line-height:1.7;}
+    .trainer-box label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; }
+    .trainer-box input {
+      width: 100%; padding: 12px; border: 2px solid #0b78ba;
+      border-radius: 8px; font-size: 15px; outline: none; margin-bottom: 10px;
+    }
 
-/* SUBMIT */
-.submit-area{display:none;margin-top:4px;}
-.submit-area.on{display:block;}
-.btn-submit{
-  width:100%;padding:16px;border:none;border-radius:10px;
-  font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;
-  background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;
-  box-shadow:0 4px 16px rgba(46,125,50,.35);
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  transition:all .2s;
-}
-.btn-submit:disabled{background:#bdbdbd;box-shadow:none;cursor:not-allowed;}
-.btn-submit:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(46,125,50,.45);}
-</style>
+    .progress-bar {
+      width: 100%; height: 8px; background: #e0e0e0;
+      border-radius: 4px; margin-top: 12px; display: none; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; background: linear-gradient(90deg, #0b78ba, #378ADD);
+      border-radius: 4px; transition: width 0.4s ease;
+    }
+    .progress-label {
+      text-align: center; font-size: 13px; color: #0b78ba; font-weight: 600;
+      margin-top: 6px; display: none;
+    }
+
+    .status-msg {
+      text-align: center; padding: 12px; border-radius: 8px; font-weight: 600;
+      display: none; margin-top: 12px; font-size: 13px;
+    }
+    .status-msg.success {
+      display: block; background: white; color: #2e7d32;
+      padding: 40px 24px; border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.10); margin-top: 24px;
+    }
+    .status-msg.error { display: block; background: #ffebee; color: #c62828; }
+
+    .sdtc-note {
+      background: #e8f5e9; border-radius: 8px; padding: 10px 12px;
+      margin-bottom: 10px; font-size: 13px; color: #2e7d32; font-weight: 600;
+    }
+  </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar">
+<div class="app-bar">
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
     <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
     <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
     <line x1="3" y1="12" x2="21" y2="12"/>
   </svg>
   EmpowerHer Attendance
-  <span class="topbar-sub">Trainer Mode</span>
 </div>
 
-<div class="wrap">
+<div class="container">
 
-  <!-- Member Hero -->
-  <div class="member-hero" id="hero">
-    <div class="mh-avatar">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B6EBB" stroke-width="2">
+  <div class="info-card" id="info-card">
+    <div class="avatar">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0b78ba" stroke-width="2">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
         <circle cx="12" cy="7" r="4"/>
       </svg>
     </div>
     <div>
-      <div class="mh-name" id="mh-name">—</div>
-      <div class="mh-uid"  id="mh-uid">Scan beneficiary QR to begin</div>
-      <div class="mh-extra" id="mh-extra"></div>
+      <div class="member-name" id="display-name">—</div>
+      <div class="member-uid"  id="display-uid">Scan beneficiary QR to begin</div>
+      <div class="member-sub"  id="display-extra"></div>
     </div>
   </div>
 
-  <!-- Trainer Strip -->
-  <div class="trainer-strip" id="trainer-strip">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+  <div class="trainer-badge" id="trainer-badge">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0C447C" stroke-width="2">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
       <circle cx="12" cy="7" r="4"/>
     </svg>
-    <span id="trainer-strip-txt">Trainer: —</span>
-    <span class="chg" onclick="changeTrainer()">Change</span>
+    <span id="trainer-badge-text">Trainer: —</span>
+    <span class="change-link" onclick="changeTrainer()">Change</span>
   </div>
 
-  <!-- ══ STEP 0: TRAINER NAME ══ -->
-  <div class="step on" id="s0">
-    <div class="step-hd"><div class="step-num">0</div><div class="step-title">Enter Trainer Name</div></div>
-    <label class="lbl">Your Name (Trainer) — enter once per session</label>
-    <input class="field" id="trainer-input" placeholder="Type your name here..."
-           onkeydown="if(event.key==='Enter')confirmTrainer()">
-    <div class="btn-row">
-      <button class="btn btn-primary btn-full" onclick="confirmTrainer()">✔ Confirm &amp; Start Scanning</button>
+  <!-- STEP 0: TRAINER NAME -->
+  <div class="step-card active" id="card-trainer">
+    <div class="step-header">
+      <div class="step-num">0</div>
+      <div class="step-title">Enter Trainer Name</div>
     </div>
+    <div class="trainer-box">
+      <label>Your name (Trainer) — enter once per session</label>
+      <input type="text" id="trainer-name-input" placeholder="Type your name here..."
+             onkeydown="if(event.key==='Enter') confirmTrainer()"/>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;"
+            onclick="confirmTrainer()">✔ Confirm &amp; Start Scanning</button>
   </div>
 
-  <!-- ══ STEP 1: BENEFICIARY QR ══ -->
-  <div class="step" id="s1">
-    <div class="step-hd"><div class="step-num">1</div><div class="step-title">Scan Beneficiary QR Code</div></div>
-    <div class="qr-shell" id="ben-shell">
+  <!-- STEP 1: BENEFICIARY QR -->
+  <div class="step-card" id="card-beneficiary">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">Scan Beneficiary QR Code</div>
+    </div>
+    <div class="qr-placeholder" id="ben-placeholder">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0b78ba" stroke-width="1.5">
         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
         <rect x="3" y="14" width="7" height="7"/>
@@ -280,37 +271,44 @@ input.field:focus{border-color:var(--accent);}
       </svg>
       <p>Tap below to scan the beneficiary QR on the ID card</p>
     </div>
-    <div class="qr-live" id="ben-live">
-      <video id="ben-video" autoplay playsinline muted></video>
-      <canvas id="ben-canvas" style="display:none"></canvas>
-      <div class="qr-frame-wrap"><div class="qr-frame"><div class="qr-scan-line"></div></div></div>
+    <div class="qr-wrap" id="ben-qr-wrap">
+      <video class="qr-video" id="ben-video" autoplay playsinline muted></video>
+      <canvas id="ben-canvas" style="display:none;"></canvas>
+      <div class="qr-overlay"><div class="qr-frame"><div class="qr-line"></div></div></div>
       <div class="qr-hint">Hold QR code steady inside the box</div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btn-ben" onclick="startScanner('ben')" style="flex:1">📷 Scan Beneficiary QR</button>
-      <button class="btn btn-ghost" onclick="toggleManual('ben')">⌨️ Manual</button>
+      <button class="btn btn-primary" id="btn-ben-scan" onclick="startBenScanner()" style="flex:1;justify-content:center;">
+        📷 Scan Beneficiary QR
+      </button>
+      <button class="btn btn-secondary" onclick="toggleManual('ben')">⌨️ Manual</button>
     </div>
-    <div class="err-box" id="ben-err">
-      <p id="ben-err-txt">Could not access camera.</p>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-ghost" onclick="retryScanner('ben')">🔄 Retry</button>
-        <button class="btn btn-ghost" onclick="toggleManual('ben')">⌨️ Manual</button>
+    <div class="error-box" id="ben-error-box">
+      <p id="ben-error-text">Could not access camera.</p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-warning" onclick="retryScanner('ben')">🔄 Retry</button>
+        <button class="btn btn-secondary" onclick="toggleManual('ben')">⌨️ Manual</button>
       </div>
     </div>
-    <div class="manual-row" id="ben-manual">
-      <input class="field" id="ben-mi" placeholder="Type Unique ID (e.g. EMP-001)">
-      <button onclick="manualSet('ben')">✔</button>
+    <div class="manual-row" id="ben-manual-row">
+      <input type="text" id="ben-manual-input" placeholder="Type Unique ID (EMP-...)"/>
+      <button onclick="setManual('ben')">✔</button>
     </div>
-    <div class="result-pill" id="ben-result">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      <span id="ben-result-txt">Beneficiary found!</span>
+    <div class="scan-result" id="ben-scan-result">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <span id="ben-scan-text">Beneficiary found!</span>
     </div>
   </div>
 
-  <!-- ══ STEP 2: TRAINING QR ══ -->
-  <div class="step" id="s2">
-    <div class="step-hd"><div class="step-num">2</div><div class="step-title">Scan Training QR Code</div></div>
-    <div class="qr-shell" id="trn-shell">
+  <!-- STEP 2: TRAINING QR -->
+  <div class="step-card" id="card-training">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title">Scan Training QR Code</div>
+    </div>
+    <div class="qr-placeholder" id="trn-placeholder">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0b78ba" stroke-width="1.5">
         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
         <rect x="3" y="14" width="7" height="7"/>
@@ -320,570 +318,542 @@ input.field:focus{border-color:var(--accent);}
       </svg>
       <p>Tap below to scan the training QR code</p>
     </div>
-    <div class="qr-live" id="trn-live">
-      <video id="trn-video" autoplay playsinline muted></video>
-      <canvas id="trn-canvas" style="display:none"></canvas>
-      <div class="qr-frame-wrap"><div class="qr-frame"><div class="qr-scan-line"></div></div></div>
+    <div class="qr-wrap" id="trn-qr-wrap">
+      <video class="qr-video" id="trn-video" autoplay playsinline muted></video>
+      <canvas id="trn-canvas" style="display:none;"></canvas>
+      <div class="qr-overlay"><div class="qr-frame"><div class="qr-line"></div></div></div>
       <div class="qr-hint">Scan the training QR code</div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btn-trn" onclick="startScanner('trn')" style="flex:1">📷 Scan Training QR</button>
-      <button class="btn btn-ghost" onclick="toggleManual('trn')">⌨️ Manual</button>
+      <button class="btn btn-primary" id="btn-trn-scan" onclick="startTrnScanner()" style="flex:1;justify-content:center;">
+        📷 Scan Training QR
+      </button>
+      <button class="btn btn-secondary" onclick="toggleManual('trn')">⌨️ Manual</button>
     </div>
-    <div class="err-box" id="trn-err">
-      <p id="trn-err-txt">Could not access camera.</p>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-ghost" onclick="retryScanner('trn')">🔄 Retry</button>
-        <button class="btn btn-ghost" onclick="toggleManual('trn')">⌨️ Manual</button>
+    <div class="error-box" id="trn-error-box">
+      <p id="trn-error-text">Could not access camera.</p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-warning" onclick="retryScanner('trn')">🔄 Retry</button>
+        <button class="btn btn-secondary" onclick="toggleManual('trn')">⌨️ Manual</button>
       </div>
     </div>
-    <div class="manual-row" id="trn-manual">
-      <input class="field" id="trn-mi" placeholder="Type training name...">
-      <button onclick="manualSet('trn')">✔</button>
+    <div class="manual-row" id="trn-manual-row">
+      <input type="text" id="trn-manual-input" placeholder="Type training name..."/>
+      <button onclick="setManual('trn')">✔</button>
     </div>
-    <div class="result-pill" id="trn-result">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <div class="scan-result" id="trn-scan-result">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
       <div>
-        <span id="trn-result-txt">Training scanned!</span><br>
-        <span class="type-badge" id="trn-badge"></span>
+        <span id="trn-scan-text">Training scanned!</span><br>
+        <span class="type-badge" id="trn-type-badge"></span>
       </div>
     </div>
-    <div class="value-entry" id="value-entry">
-      <label class="lbl">Enter the Value / Amount (₹)</label>
-      <input class="field" type="number" id="value-input" placeholder="e.g. 5000" oninput="checkReady()">
+    <div class="value-input-box" id="value-input-box">
+      <label>Enter the value / amount (₹)</label>
+      <input type="number" id="value-input" placeholder="e.g. 5000" oninput="checkSubmitReady()"/>
     </div>
   </div>
 
-  <!-- ══ STEP 3: SUB-TRAINING QR (SDTC only) ══ -->
-  <div class="step" id="s3">
-    <div class="step-hd"><div class="step-num">3</div><div class="step-title">Scan Sub-Training QR Code</div></div>
+  <!-- STEP 3: SUB-TRAINING (SDTC only) -->
+  <div class="step-card" id="card-subtraining">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">Scan Sub-Training QR Code</div>
+    </div>
     <div class="sdtc-note">📋 SDTC detected — scan sub-training QR (e.g. Aari / Tailoring)</div>
-    <div class="qr-shell" id="sub-shell">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6B46C1" stroke-width="1.5">
+    <div class="qr-placeholder" id="sub-placeholder">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0b78ba" stroke-width="1.5">
         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
         <rect x="3" y="14" width="7" height="7"/>
-        <rect x="5" y="5" width="3" height="3" fill="#6B46C1"/>
-        <rect x="16" y="5" width="3" height="3" fill="#6B46C1"/>
-        <rect x="5" y="16" width="3" height="3" fill="#6B46C1"/>
+        <rect x="5" y="5" width="3" height="3" fill="#0b78ba"/>
+        <rect x="16" y="5" width="3" height="3" fill="#0b78ba"/>
+        <rect x="5" y="16" width="3" height="3" fill="#0b78ba"/>
       </svg>
-      <p>Tap below to scan the sub-training QR (e.g. Aari, Tailoring)</p>
+      <p>Tap below to scan the sub-training QR</p>
     </div>
-    <div class="qr-live" id="sub-live">
-      <video id="sub-video" autoplay playsinline muted></video>
-      <canvas id="sub-canvas" style="display:none"></canvas>
-      <div class="qr-frame-wrap"><div class="qr-frame"><div class="qr-scan-line"></div></div></div>
+    <div class="qr-wrap" id="sub-qr-wrap">
+      <video class="qr-video" id="sub-video" autoplay playsinline muted></video>
+      <canvas id="sub-canvas" style="display:none;"></canvas>
+      <div class="qr-overlay"><div class="qr-frame"><div class="qr-line"></div></div></div>
       <div class="qr-hint">Scan Aari / Tailoring QR code</div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btn-sub" onclick="startScanner('sub')" style="flex:1;background:#6B46C1">📷 Scan Sub-Training QR</button>
-      <button class="btn btn-ghost" onclick="toggleManual('sub')">⌨️ Manual</button>
+      <button class="btn btn-primary" id="btn-sub-scan" onclick="startSubScanner()" style="flex:1;justify-content:center;">
+        📷 Scan Sub-Training QR
+      </button>
+      <button class="btn btn-secondary" onclick="toggleManual('sub')">⌨️ Manual</button>
     </div>
-    <div class="err-box" id="sub-err">
-      <p id="sub-err-txt">Could not access camera.</p>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-ghost" onclick="retryScanner('sub')">🔄 Retry</button>
-        <button class="btn btn-ghost" onclick="toggleManual('sub')">⌨️ Manual</button>
+    <div class="error-box" id="sub-error-box">
+      <p id="sub-error-text">Could not access camera.</p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-warning" onclick="retryScanner('sub')">🔄 Retry</button>
+        <button class="btn btn-secondary" onclick="toggleManual('sub')">⌨️ Manual</button>
       </div>
     </div>
-    <div class="manual-row" id="sub-manual">
-      <input class="field" id="sub-mi" placeholder="Type sub-training (e.g. Aari)...">
-      <button onclick="manualSet('sub')">✔</button>
+    <div class="manual-row" id="sub-manual-row">
+      <input type="text" id="sub-manual-input" placeholder="Type sub-training (e.g. Aari)..."/>
+      <button onclick="setManual('sub')">✔</button>
     </div>
-    <div class="result-pill" id="sub-result">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      <span id="sub-result-txt">Sub-training scanned!</span>
-    </div>
-  </div>
-
-  <!-- ══ STEP 4: LOCATION ══ -->
-  <div class="step" id="s4">
-    <div class="step-hd"><div class="step-num">4</div><div class="step-title">Capture Location</div></div>
-    <div class="loc-box" id="loc-box">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <span id="loc-txt">Requesting location...</span>
+    <div class="scan-result" id="sub-scan-result">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <span id="sub-scan-text">Sub-training scanned!</span>
     </div>
   </div>
 
-  <!-- ══ STEP 5: PHOTO ══ -->
-  <div class="step" id="s5">
-    <div class="step-hd"><div class="step-num">5</div><div class="step-title">Take Attendance Photo</div></div>
-    <div class="photo-area">
-      <video id="vid-preview" autoplay playsinline></video>
-      <img   id="img-preview" alt="Captured photo">
-      <div class="photo-note" id="photo-note"></div>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="btn-cam"     onclick="openCamera()">📷 Open Camera</button>
-        <button class="btn btn-primary" id="btn-capture" onclick="capturePhoto()" style="display:none">📸 Capture</button>
-        <button class="btn btn-ghost"   id="btn-retake"  onclick="retakePhoto()"  style="display:none">🔄 Retake</button>
-      </div>
+  <!-- STEP 4: LOCATION -->
+  <div class="step-card" id="card-location">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      <div class="step-title">Capture Location</div>
+    </div>
+    <div class="loc-status" id="loc-status">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span id="loc-text">Requesting location...</span>
     </div>
   </div>
 
-  <!-- SUBMIT -->
-  <div class="submit-area" id="submit-area">
-    <button class="btn-submit" id="btn-submit" onclick="doSubmit()" disabled>
-      ✅ Submit Attendance
-    </button>
-    <div class="prog-wrap" id="prog-wrap">
-      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-      <div class="prog-lbl" id="prog-lbl"></div>
+  <!-- STEP 5: PHOTO -->
+  <div class="step-card" id="card-photo">
+    <div class="step-header">
+      <div class="step-num">5</div>
+      <div class="step-title">Take Attendance Photo</div>
+    </div>
+    <video id="camera-preview" autoplay playsinline></video>
+    <img   id="photo-preview" alt="Captured photo">
+    <div class="camera-controls">
+      <button class="btn btn-primary"   id="btn-open-camera" onclick="openCamera()">📷 Open Camera</button>
+      <button class="btn btn-primary"   id="btn-capture"     onclick="capturePhoto()" style="display:none;">📸 Capture</button>
+      <button class="btn btn-secondary" id="btn-retake"      onclick="retakePhoto()"  style="display:none;">🔄 Retake</button>
     </div>
   </div>
 
-  <!-- SUCCESS -->
-  <div class="success-screen" id="suc"></div>
+  <button class="btn-success" id="btn-submit" onclick="submitAttendance()" disabled>
+    ✅ Submit Attendance
+  </button>
+  <div class="progress-bar"  id="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <div class="progress-label" id="progress-label"></div>
+  <div class="status-msg" id="status-msg"></div>
 
 </div>
 
 <script>
-// ══════════════════════════════════════════
-// CONFIG
-// ══════════════════════════════════════════
-const WEB_APP_URL  = "https://script.google.com/macros/s/AKfycbyYVpqUkTSrXn9gTx7yHuHDLSpn2utRQXtcXVgQIehwwFpE7fFjGlAjXuyojho1BmuX/exec";
-const DRIVE_FOLDER = "13KwAhVgjFqg0BaYe6P1k5h5L_H5H_97b";
+// ── PASTE YOUR WEB APP URL HERE ──────────────────────────────
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzW2nwyXlPqogssfs34mOR8kJfCVnhNcp0odT1DtmqR7vNeEaAaogSa30V0idFDVpyU/exec;
+// ────────────────────────────────────────────────────────────
+
 const PHOTO_W = 120, PHOTO_H = 90, PHOTO_Q = 0.25;
 
-// ══════════════════════════════════════════
-// TRAINING TYPE DETECTION
-// The QR on each training card contains the training name.
-// We detect the type from that scanned text:
-//   SDTC  → starts with "SDTC"
-//   Value → ENT 1.6 Investment / ENT 1.6 Present income
-//   Normal → everything else
-// ══════════════════════════════════════════
-function detectType(name) {
-  const n = name.trim().toUpperCase();
-  if (n.startsWith("SDTC"))                                        return "SDTC";
-  if (n.includes("1.6 INVESTMENT") || n.includes("1.6 PRESENT"))  return "Value";
-  if (n.startsWith("ENT 1.7") || n.startsWith("ENT 1.8") ||
-      n.startsWith("ENT 1.9") || n.startsWith("ENT 1.10"))        return "Value";
-  return "Normal";
-}
-
-const TYPE_LABELS = {Normal:"Normal Training", SDTC:"SDTC — Sub-training required", Value:"Value Entry Required"};
-const TYPE_CSS    = {Normal:"tb-normal",        SDTC:"tb-sdtc",                      Value:"tb-value"};
-
-// ══════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════
-const S = {
-  trainer:"", uid:"", name:"", shg:"", cln:"",
-  trainingName:"", trainingType:"",
-  subTraining:"", entValue:"",
-  lat:null, lng:null, ts:"",
-  photoB64:"", photoStream:null,
+const state = {
+  trainerName:"", uid:"", name:"", shg:"", cln:"",
+  trainingName:"", trainingType:"", subTraining:"", entValue:"",
+  lat:null, lng:null, timestamp:"", photoBase64:"", photoStream:null
 };
-const SC = {}; // active scanner intervals
+const scanners = { ben:null, trn:null, sub:null };
 
-// ══════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════
 window.onload = () => { getLocation(); };
 
-function show(id){
+function showCard(id) {
   const el = document.getElementById(id);
-  if(el){ el.classList.add("on"); setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),120); }
-}
-function hide(id){ const el=document.getElementById(id); if(el) el.classList.remove("on"); }
-
-// ══════════════════════════════════════════
-// STEP 0: TRAINER
-// ══════════════════════════════════════════
-function confirmTrainer(){
-  const n = document.getElementById("trainer-input").value.trim();
-  if(!n){ alert("Please enter your name."); return; }
-  S.trainer = n;
-  document.getElementById("trainer-strip-txt").textContent = "Trainer: " + n;
-  document.getElementById("trainer-strip").classList.add("on");
-  hide("s0");
-  show("s1");
-}
-function changeTrainer(){
-  document.getElementById("trainer-input").value = S.trainer;
-  show("s0");
-  document.getElementById("trainer-input").focus();
+  if (el) {
+    el.classList.add("active");
+    setTimeout(() => el.scrollIntoView({ behavior:"smooth", block:"start" }), 120);
+  }
 }
 
-// ══════════════════════════════════════════
-// QR SCANNER ENGINE  (same as original)
-// ══════════════════════════════════════════
-async function startScanner(which){
-  const btn = document.getElementById("btn-" + which);
-  document.getElementById(which+"-err").style.display   = "none";
-  document.getElementById(which+"-shell").style.display = "none";
-  document.getElementById(which+"-live").style.display  = "block";
-  btn.disabled = true;
-  btn.textContent = "⏳ Starting camera...";
+// ── STEP 0: TRAINER ──────────────────────────────────────────
+function confirmTrainer() {
+  const name = document.getElementById("trainer-name-input").value.trim();
+  if (!name) { alert("Please enter your name."); return; }
+  state.trainerName = name;
+  document.getElementById("trainer-badge-text").textContent = "Trainer: " + name;
+  document.getElementById("trainer-badge").classList.add("show");
+  document.getElementById("card-trainer").classList.remove("active");
+  showCard("card-beneficiary");
+}
+function changeTrainer() {
+  document.getElementById("trainer-name-input").value = state.trainerName;
+  document.getElementById("card-trainer").classList.add("active");
+  document.getElementById("trainer-name-input").focus();
+}
 
+// ── QR SCANNER ENGINE ────────────────────────────────────────
+async function startQRScanner(videoId, canvasId, onSuccess) {
   let stream;
   try {
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video:{facingMode:{exact:"environment"},width:{ideal:1280},height:{ideal:720}}
+        video:{ facingMode:{ exact:"environment" }, width:{ ideal:1280 }, height:{ ideal:720 } }
       });
-    } catch(e){
-      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    } catch(e) {
+      stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment" } });
     }
-  } catch(err){
-    showErr(which, "Camera permission denied. Please allow camera access and tap Manual.");
-    btn.disabled = false;
-    btn.textContent = btnLabel(which);
-    return;
+  } catch(err) {
+    return { error:"Camera permission denied. Please allow camera access and refresh." };
   }
-
-  const video = document.getElementById(which+"-video");
+  const video = document.getElementById(videoId);
   video.srcObject = stream;
   await new Promise(r => { video.onloadedmetadata = () => video.play().then(r).catch(r); });
-
-  let active = true;
-
-  function stopStream(){
+  let active = true, interval = null;
+  function stop() {
     active = false;
-    if(SC[which]) clearInterval(SC[which]);
-    stream.getTracks().forEach(t=>t.stop());
-    SC[which] = null;
+    if (interval) clearInterval(interval);
+    stream.getTracks().forEach(t => t.stop());
   }
-
-  async function tryDecode(){
-    if(!active || video.readyState < 2) return;
-    // Try native BarcodeDetector first
-    if(typeof BarcodeDetector !== "undefined"){
-      try {
-        const d = new BarcodeDetector({formats:["qr_code"]});
-        const bc = await d.detect(video);
-        if(bc.length){ stopStream(); onScanSuccess(which, bc[0].rawValue); return; }
-      } catch(e){}
-    }
-    // jsQR fallback
-    if(!window.jsQR) return;
-    const c = document.getElementById(which+"-canvas");
+  function jsqrDecode() {
+    if (!active || video.readyState < 2 || !window.jsQR) return;
+    const c = document.getElementById(canvasId);
     const ctx = c.getContext("2d");
-    const w = video.videoWidth||640, h = video.videoHeight||480;
-    c.width=w; c.height=h;
-    ctx.drawImage(video,0,0,w,h);
-    const code = window.jsQR(ctx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:"dontInvert"});
-    if(code && code.data){ stopStream(); onScanSuccess(which, code.data); }
+    const w = video.videoWidth || 640, h = video.videoHeight || 480;
+    if (c.width !== w) c.width = w;
+    if (c.height !== h) c.height = h;
+    ctx.drawImage(video, 0, 0, w, h);
+    const code = window.jsQR(ctx.getImageData(0,0,w,h).data, w, h, { inversionAttempts:"dontInvert" });
+    if (code && code.data) { stop(); onSuccess(code.data); }
   }
-
-  if(typeof BarcodeDetector === "undefined"){
-    await new Promise((res,rej)=>{
-      if(window.jsQR){res();return;}
-      const s=document.createElement("script");
-      s.src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js";
-      s.onload=res; s.onerror=rej; document.head.appendChild(s);
-    });
-  }
-  SC[which] = setInterval(tryDecode, 300);
-  btn.textContent = "🔍 Scanning...";
-}
-
-function btnLabel(w){
-  if(w==="ben") return "📷 Scan Beneficiary QR";
-  if(w==="trn") return "📷 Scan Training QR";
-  return "📷 Scan Sub-Training QR";
-}
-
-function showErr(which, msg){
-  document.getElementById(which+"-live").style.display  = "none";
-  document.getElementById(which+"-shell").style.display = "flex";
-  document.getElementById(which+"-err-txt").textContent = msg;
-  document.getElementById(which+"-err").style.display   = "block";
-}
-
-function retryScanner(which){
-  if(SC[which]){clearInterval(SC[which]);SC[which]=null;}
-  document.getElementById(which+"-live").style.display  = "none";
-  document.getElementById(which+"-shell").style.display = "flex";
-  document.getElementById(which+"-err").style.display   = "none";
-  startScanner(which);
-}
-
-function toggleManual(which){
-  const r = document.getElementById(which+"-manual");
-  r.style.display = r.style.display==="flex" ? "none" : "flex";
-  if(r.style.display==="flex") document.getElementById(which+"-mi").focus();
-}
-
-function manualSet(which){
-  const v = document.getElementById(which+"-mi").value.trim();
-  if(!v){alert("Please enter a value.");return;}
-  document.getElementById(which+"-manual").style.display = "none";
-  onScanSuccess(which, v);
-}
-
-// ══════════════════════════════════════════
-// ON SCAN SUCCESS — handles all 3 scanners
-// ══════════════════════════════════════════
-async function onScanSuccess(which, text){
-  const val = text.trim();
-  document.getElementById(which+"-live").style.display = "none";
-  const btn = document.getElementById("btn-"+which);
-  btn.disabled = true;
-  btn.textContent = "✅ Scanned";
-
-  // ── BENEFICIARY ──
-  if(which === "ben"){
-    S.uid = val.toUpperCase();
+  async function nativeDecode() {
+    if (!active || video.readyState < 2) return;
     try {
-      const j = await jsonpFetch(WEB_APP_URL+"?action=getmember&uid="+encodeURIComponent(S.uid));
-      if(j.name){ S.name=j.name; S.shg=j.shg||""; S.cln=j.cln||""; }
-    } catch(e){ console.warn("Lookup failed:",e); }
-
-    document.getElementById("mh-name").textContent  = S.name || S.uid;
-    document.getElementById("mh-uid").textContent   = S.uid;
-    document.getElementById("mh-extra").textContent = [S.shg,S.cln].filter(Boolean).join(" | ");
-    document.getElementById("ben-result-txt").textContent = "✅ " + (S.name || S.uid);
-    document.getElementById("ben-result").classList.add("on");
-    setTimeout(()=>show("s2"), 600);
+      const d = new BarcodeDetector({ formats:["qr_code"] });
+      const bc = await d.detect(video);
+      if (bc.length > 0 && bc[0].rawValue) { stop(); onSuccess(bc[0].rawValue); }
+    } catch(e) {}
   }
-
-  // ── TRAINING ──
-  else if(which === "trn"){
-    S.trainingName = val;
-    S.trainingType = detectType(val);
-
-    const badge = document.getElementById("trn-badge");
-    badge.textContent = TYPE_LABELS[S.trainingType];
-    badge.className   = "type-badge " + TYPE_CSS[S.trainingType];
-
-    document.getElementById("trn-result-txt").textContent = val;
-    document.getElementById("trn-result").classList.add("on");
-
-    if(S.trainingType === "Value"){
-      document.getElementById("value-entry").style.display = "block";
-    }
-
-    if(S.trainingType === "SDTC"){
-      setTimeout(()=>show("s3"), 600);
-    } else {
-      setTimeout(()=>{ show("s4"); show("s5"); document.getElementById("submit-area").classList.add("on"); checkReady(); }, 600);
-    }
+  if (typeof BarcodeDetector !== "undefined") {
+    interval = setInterval(nativeDecode, 300);
+  } else {
+    await loadJsQR();
+    interval = setInterval(jsqrDecode, 300);
   }
-
-  // ── SUB-TRAINING ──
-  else if(which === "sub"){
-    S.subTraining = val;
-    document.getElementById("sub-result-txt").textContent = "✅ " + val;
-    document.getElementById("sub-result").classList.add("on");
-    setTimeout(()=>{ show("s4"); show("s5"); document.getElementById("submit-area").classList.add("on"); checkReady(); }, 500);
-  }
+  return { stop };
 }
 
-// ══════════════════════════════════════════
-// LOCATION
-// ══════════════════════════════════════════
-function getLocation(){
-  if(!navigator.geolocation){ document.getElementById("loc-txt").textContent="Geolocation not supported."; return; }
-  navigator.geolocation.getCurrentPosition(
-    pos=>{
-      S.lat = pos.coords.latitude.toFixed(6);
-      S.lng = pos.coords.longitude.toFixed(6);
-      S.ts  = new Date().toLocaleString("en-IN");
-      document.getElementById("loc-box").classList.add("ok");
-      document.getElementById("loc-txt").textContent = "📍 "+S.lat+", "+S.lng;
-      checkReady();
-    },
-    ()=>{ document.getElementById("loc-txt").textContent="⚠️ Location denied. Enable GPS and refresh."; },
-    {enableHighAccuracy:true,timeout:15000}
-  );
-}
-
-// ══════════════════════════════════════════
-// PHOTO
-// ══════════════════════════════════════════
-async function openCamera(){
-  try{
-    let stream;
-    try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:320}}}); }
-    catch(e){ stream=await navigator.mediaDevices.getUserMedia({video:true}); }
-    S.photoStream=stream;
-    const v=document.getElementById("vid-preview");
-    v.srcObject=stream; v.style.display="block";
-    document.getElementById("btn-cam").style.display="none";
-    document.getElementById("btn-capture").style.display="inline-flex";
-  }catch(e){ alert("Camera access denied."); }
-}
-
-function capturePhoto(){
-  const v=document.getElementById("vid-preview");
-  const c=document.createElement("canvas");
-  c.width=PHOTO_W; c.height=PHOTO_H;
-  c.getContext("2d").drawImage(v,0,0,PHOTO_W,PHOTO_H);
-  const dUrl=c.toDataURL("image/jpeg",PHOTO_Q);
-  S.photoB64=dUrl.split(",")[1];
-  if(S.photoStream) S.photoStream.getTracks().forEach(t=>t.stop());
-  v.style.display="none";
-  const img=document.getElementById("img-preview");
-  img.src=dUrl; img.style.display="block";
-  const note=document.getElementById("photo-note");
-  note.textContent="Photo: "+(Math.round(S.photoB64.length*0.75/1024*10)/10)+" KB (compressed)";
-  note.style.display="block";
-  document.getElementById("btn-capture").style.display="none";
-  document.getElementById("btn-retake").style.display="inline-flex";
-  checkReady();
-}
-
-function retakePhoto(){
-  S.photoB64="";
-  document.getElementById("img-preview").style.display="none";
-  document.getElementById("photo-note").style.display="none";
-  document.getElementById("btn-retake").style.display="none";
-  document.getElementById("btn-cam").style.display="inline-flex";
-  checkReady();
-}
-
-// ══════════════════════════════════════════
-// READY CHECK
-// ══════════════════════════════════════════
-function checkReady(){
-  const valueOk = S.trainingType!=="Value" || !!document.getElementById("value-input").value.trim();
-  const sdtcOk  = S.trainingType!=="SDTC"  || !!S.subTraining;
-  const ok = !!S.uid && !!S.trainingName && sdtcOk && valueOk && !!S.lat && !!S.photoB64;
-  document.getElementById("btn-submit").disabled = !ok;
-}
-
-// ══════════════════════════════════════════
-// JSONP
-// ══════════════════════════════════════════
-function jsonpFetch(url){
-  return new Promise((res,rej)=>{
-    const cb="cb_"+Date.now()+"_"+Math.random().toString(36).slice(2);
-    const s=document.createElement("script");
-    const t=setTimeout(()=>{cleanup();rej(new Error("Timeout (25s)"));},25000);
-    window[cb]=d=>{cleanup();res(d);};
-    function cleanup(){clearTimeout(t);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);}
-    s.onerror=()=>{cleanup();rej(new Error("Network error"));};
-    s.src=url+(url.includes("?")?"&":"?")+"callback="+cb;
+function loadJsQR() {
+  return new Promise((res, rej) => {
+    if (window.jsQR) { res(); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js";
+    s.onload = res; s.onerror = () => rej(new Error("Failed to load QR library"));
     document.head.appendChild(s);
   });
 }
 
-// ══════════════════════════════════════════
-// SUBMIT
-// ══════════════════════════════════════════
-async function doSubmit(){
-  const btn=document.getElementById("btn-submit");
-  btn.disabled=true;
-  if(S.trainingType==="Value") S.entValue=document.getElementById("value-input").value.trim();
+async function startScanner(which, onSuccess) {
+  const labels = { ben:"📷 Scan Beneficiary QR", trn:"📷 Scan Training QR", sub:"📷 Scan Sub-Training QR" };
+  const btn = document.getElementById("btn-" + which + "-scan");
+  btn.disabled = true; btn.textContent = "⏳ Starting camera...";
+  document.getElementById(which + "-error-box").style.display = "none";
+  document.getElementById(which + "-placeholder").style.display = "none";
+  document.getElementById(which + "-qr-wrap").style.display = "block";
+  const result = await startQRScanner(which + "-video", which + "-canvas", onSuccess);
+  if (result && result.error) {
+    document.getElementById(which + "-error-text").textContent = result.error;
+    document.getElementById(which + "-error-box").style.display = "block";
+    document.getElementById(which + "-qr-wrap").style.display = "none";
+    document.getElementById(which + "-placeholder").style.display = "flex";
+    btn.disabled = false; btn.textContent = labels[which]; return;
+  }
+  scanners[which] = result;
+  btn.textContent = "🔍 Scanning...";
+}
 
-  const prog=document.getElementById("prog-wrap");
-  prog.style.display="block";
-  setProgress(20,"Saving attendance with photo...");
+function retryScanner(which) {
+  if (scanners[which]) { try { scanners[which].stop(); } catch(e) {} scanners[which] = null; }
+  document.getElementById(which + "-qr-wrap").style.display = "none";
+  document.getElementById(which + "-placeholder").style.display = "flex";
+  document.getElementById(which + "-error-box").style.display = "none";
+  if (which==="ben") setTimeout(startBenScanner,300);
+  if (which==="trn") setTimeout(startTrnScanner,300);
+  if (which==="sub") setTimeout(startSubScanner,300);
+}
 
-  const url = WEB_APP_URL
-    +"?action=attendance"
-    +"&uid="          +encodeURIComponent(S.uid          ||"Unknown")
-    +"&name="         +encodeURIComponent(S.name         ||"Unknown")
-    +"&trainerName="  +encodeURIComponent(S.trainer      ||"Unknown")
-    +"&trainingName=" +encodeURIComponent(S.trainingName ||"Unknown")
-    +"&subTraining="  +encodeURIComponent(S.subTraining  ||"")
-    +"&entValue="     +encodeURIComponent(S.entValue     ||"")
-    +"&lat="          +encodeURIComponent(S.lat          ||"0")
-    +"&lng="          +encodeURIComponent(S.lng          ||"0")
-    +"&timestamp="    +encodeURIComponent(S.ts           ||new Date().toLocaleString("en-IN"))
-    +"&driveFolder="  +encodeURIComponent(DRIVE_FOLDER)
-    +"&photo="        +encodeURIComponent(S.photoB64     ||"");
+function toggleManual(which) {
+  const r = document.getElementById(which + "-manual-row");
+  r.style.display = (r.style.display === "flex") ? "none" : "flex";
+  if (r.style.display === "flex") document.getElementById(which + "-manual-input").focus();
+}
+function setManual(which) {
+  const val = document.getElementById(which + "-manual-input").value.trim();
+  if (!val) { alert("Please enter a value."); return; }
+  document.getElementById(which + "-manual-row").style.display = "none";
+  if (which==="ben") onBenScanSuccess(val);
+  if (which==="trn") onTrnScanSuccess(val);
+  if (which==="sub") onSubScanSuccess(val);
+}
 
-  try{
-    setProgress(50,"Waiting for server response...");
-    const res=await jsonpFetch(url);
-    if(!res.success) throw new Error(res.error||"Server failure");
-    setProgress(100,"Saved! ✅");
+// ── STEP 1: BENEFICIARY ──────────────────────────────────────
+function startBenScanner() { startScanner("ben", onBenScanSuccess); }
 
-    const dispName = (S.name||"Friend").trim();
-    const trnDisp  = S.subTraining ? S.trainingName+" — "+S.subTraining : S.trainingName;
-    const dateStr  = S.ts ? S.ts.split(",")[0] : new Date().toLocaleDateString("en-IN");
+async function onBenScanSuccess(text) {
+  const uid = text.trim().toUpperCase();
+  state.uid = uid;
+  document.getElementById("ben-qr-wrap").style.display = "none";
+  document.getElementById("btn-ben-scan").textContent = "✅ Scanned";
+  document.getElementById("btn-ben-scan").disabled = true;
+  try {
+    const json = await jsonpFetch(WEB_APP_URL + "?action=getmember&uid=" + encodeURIComponent(uid));
+    if (json.name) { state.name = json.name; state.shg = json.shg || ""; state.cln = json.cln || ""; }
+  } catch(e) { console.warn("Member lookup failed:", e); }
+  document.getElementById("display-name").textContent  = state.name || uid;
+  document.getElementById("display-uid").textContent   = state.uid;
+  document.getElementById("display-extra").textContent = [state.shg, state.cln].filter(Boolean).join(" | ");
+  document.getElementById("ben-scan-text").textContent = "✅ " + (state.name || uid);
+  document.getElementById("ben-scan-result").classList.add("show");
+  setTimeout(() => showCard("card-training"), 600);
+}
 
-    setTimeout(()=>{
-      prog.style.display="none";
-      document.getElementById("submit-area").classList.remove("on");
-      document.querySelectorAll(".step").forEach(c=>c.classList.remove("on"));
-      document.getElementById("hero").style.display="none";
+// ── STEP 2: TRAINING ─────────────────────────────────────────
+function startTrnScanner() { startScanner("trn", onTrnScanSuccess); }
 
-      const suc=document.getElementById("suc");
-      suc.classList.add("on");
-      window.scrollTo({top:0,behavior:"smooth"});
-      suc.innerHTML=`
-        <div class="suc-icon">🎉</div>
-        <div class="suc-head">Thank You, ${dispName}!</div>
-        <div class="suc-body">
-          Attendance recorded for<br>
-          <strong>${trnDisp.length>70?trnDisp.slice(0,70)+"…":trnDisp}</strong><br>
-          on <strong>${dateStr}</strong>
-        </div>
-        <div style="margin-top:10px;font-size:12px;color:${res.photoUrl?"#1b5e20":"#C05621"}">
-          ${res.photoUrl?"📷 Photo saved to Drive ✅":"⚠️ Photo not saved"}
-        </div>
-        <div style="margin-top:20px">
-          <button onclick="nextBeneficiary()" style="width:100%;padding:14px;background:#0B6EBB;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">
-            👤 Next Beneficiary
-          </button>
-        </div>
-        <div style="margin-top:12px;font-size:12px;color:var(--muted)">Trainer: <strong>${S.trainer}</strong></div>
-      `;
-    },600);
+function detectType(raw) {
+  const parts = raw.split("|");
+  if (parts.length >= 3) return parts[2].trim();
+  const n = raw.trim().toUpperCase();
+  if (n.startsWith("SDTC"))                               return "SDTC";
+  if (n.startsWith("ENT 1.6I") || n.startsWith("ENT 1.6P") ||
+      n.startsWith("ENT 1.7C") || n.startsWith("ENT 1.6 INV") ||
+      n.startsWith("ENT 1.6 PRE") || n.startsWith("ENT 1.7")) return "Value";
+  return "Normal";
+}
 
-  }catch(e){
-    prog.style.display="none";
-    btn.disabled=false;
-    alert("❌ Error: "+e.message+"\n\nPlease check internet and try again.");
+function onTrnScanSuccess(raw) {
+  const parts = raw.split("|");
+  const name  = parts.length >= 2 ? parts[1].trim() : raw.trim();
+  const type  = detectType(raw);
+  state.trainingName = name;
+  state.trainingType = type;
+  document.getElementById("trn-qr-wrap").style.display = "none";
+  document.getElementById("btn-trn-scan").textContent = "✅ Scanned";
+  document.getElementById("btn-trn-scan").disabled = true;
+  document.getElementById("trn-scan-text").textContent = name;
+  const badge = document.getElementById("trn-type-badge");
+  if (type === "SDTC") {
+    badge.textContent = "SDTC — Sub-training required";
+    badge.className = "type-badge type-sdtc";
+  } else if (type === "Value") {
+    badge.textContent = "Value Entry Required";
+    badge.className = "type-badge type-value";
+    document.getElementById("value-input-box").style.display = "block";
+  } else {
+    badge.textContent = "Normal Training";
+    badge.className = "type-badge type-normal";
+  }
+  document.getElementById("trn-scan-result").classList.add("show");
+  if (type === "SDTC") {
+    setTimeout(() => showCard("card-subtraining"), 600);
+  } else {
+    showCard("card-location"); showCard("card-photo");
+    document.getElementById("btn-submit").classList.add("show");
+    checkSubmitReady();
   }
 }
 
-function setProgress(pct,lbl){
-  document.getElementById("prog-fill").style.width=pct+"%";
-  document.getElementById("prog-lbl").textContent=lbl;
+// ── STEP 3: SUB-TRAINING ─────────────────────────────────────
+function startSubScanner() { startScanner("sub", onSubScanSuccess); }
+function onSubScanSuccess(text) {
+  state.subTraining = text.trim();
+  document.getElementById("sub-qr-wrap").style.display = "none";
+  document.getElementById("btn-sub-scan").textContent = "✅ Scanned";
+  document.getElementById("btn-sub-scan").disabled = true;
+  document.getElementById("sub-scan-text").textContent = "✅ " + state.subTraining;
+  document.getElementById("sub-scan-result").classList.add("show");
+  setTimeout(() => {
+    showCard("card-location"); showCard("card-photo");
+    document.getElementById("btn-submit").classList.add("show");
+    checkSubmitReady();
+  }, 500);
 }
 
-// ══════════════════════════════════════════
-// NEXT BENEFICIARY
-// ══════════════════════════════════════════
-function nextBeneficiary(){
-  S.uid="";S.name="";S.shg="";S.cln="";
-  S.trainingName="";S.trainingType="";S.subTraining="";S.entValue="";
-  S.lat=null;S.lng=null;S.ts="";S.photoB64="";S.photoStream=null;
+// ── STEP 4: GPS ──────────────────────────────────────────────
+function getLocation() {
+  if (!navigator.geolocation) {
+    document.getElementById("loc-text").textContent = "Geolocation not supported."; return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      state.lat = pos.coords.latitude.toFixed(6);
+      state.lng = pos.coords.longitude.toFixed(6);
+      state.timestamp = new Date().toLocaleString("en-IN");
+      document.getElementById("loc-status").classList.add("success");
+      document.getElementById("loc-text").textContent = "📍 " + state.lat + ", " + state.lng;
+      checkSubmitReady();
+    },
+    () => { document.getElementById("loc-text").textContent = "⚠️ Location denied. Enable GPS and refresh."; },
+    { enableHighAccuracy:true, timeout:15000 }
+  );
+}
 
-  ["ben","trn","sub"].forEach(w=>{
-    if(SC[w]){clearInterval(SC[w]);SC[w]=null;}
-    document.getElementById(w+"-live").style.display  ="none";
-    document.getElementById(w+"-shell").style.display ="flex";
-    document.getElementById(w+"-err").style.display   ="none";
-    document.getElementById(w+"-manual").style.display="none";
-    document.getElementById(w+"-mi").value            ="";
-    document.getElementById(w+"-result").classList.remove("on");
-    document.getElementById("btn-"+w).disabled=false;
-    document.getElementById("btn-"+w).textContent=btnLabel(w);
+// ── STEP 5: PHOTO ────────────────────────────────────────────
+async function openCamera() {
+  try {
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ideal:320}, height:{ideal:240} } });
+    } catch(e) {
+      stream = await navigator.mediaDevices.getUserMedia({ video:true });
+    }
+    state.photoStream = stream;
+    const v = document.getElementById("camera-preview");
+    v.srcObject = stream; v.style.display = "block";
+    document.getElementById("btn-open-camera").style.display = "none";
+    document.getElementById("btn-capture").style.display = "inline-flex";
+  } catch(e) { alert("Camera access denied."); }
+}
+
+function capturePhoto() {
+  const v = document.getElementById("camera-preview");
+  const c = document.createElement("canvas");
+  c.width = PHOTO_W; c.height = PHOTO_H;
+  c.getContext("2d").drawImage(v, 0, 0, PHOTO_W, PHOTO_H);
+  const dataURL = c.toDataURL("image/jpeg", PHOTO_Q);
+  state.photoBase64 = dataURL.split(",")[1];
+  if (state.photoStream) state.photoStream.getTracks().forEach(t => t.stop());
+  v.style.display = "none";
+  const p = document.getElementById("photo-preview");
+  p.src = dataURL; p.style.display = "block";
+  document.getElementById("btn-capture").style.display = "none";
+  document.getElementById("btn-retake").style.display  = "inline-flex";
+  checkSubmitReady();
+}
+
+function retakePhoto() {
+  state.photoBase64 = "";
+  document.getElementById("photo-preview").style.display  = "none";
+  document.getElementById("btn-retake").style.display     = "none";
+  document.getElementById("btn-open-camera").style.display = "inline-flex";
+  checkSubmitReady();
+}
+
+// ── SUBMIT CHECK ─────────────────────────────────────────────
+function checkSubmitReady() {
+  const valueOk = state.trainingType !== "Value" || !!(document.getElementById("value-input").value.trim());
+  const sdtcOk  = state.trainingType !== "SDTC"  || !!state.subTraining;
+  const ready   = !!state.uid && !!state.trainingName && sdtcOk && valueOk && !!state.lat && !!state.photoBase64;
+  document.getElementById("btn-submit").disabled = !ready;
+}
+
+function setProgress(pct, label) {
+  document.getElementById("progress-bar").style.display   = "block";
+  document.getElementById("progress-label").style.display = "block";
+  document.getElementById("progress-fill").style.width    = pct + "%";
+  document.getElementById("progress-label").textContent   = label;
+}
+
+// ── JSONP FETCH ──────────────────────────────────────────────
+function jsonpFetch(url) {
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*99999);
+    const s  = document.createElement("script");
+    const t  = setTimeout(() => { cleanup(); reject(new Error("Timed out (25s)")); }, 25000);
+    window[cb] = d => { cleanup(); resolve(d); };
+    function cleanup() { clearTimeout(t); delete window[cb]; if (s.parentNode) s.parentNode.removeChild(s); }
+    s.onerror = () => { cleanup(); reject(new Error("Network error")); };
+    s.src = url + (url.includes("?")?"&":"?") + "callback=" + cb;
+    document.head.appendChild(s);
   });
+}
 
-  document.getElementById("mh-name").textContent ="—";
-  document.getElementById("mh-uid").textContent  ="Scan beneficiary QR to begin";
-  document.getElementById("mh-extra").textContent="";
-  document.getElementById("hero").style.display  ="flex";
+// ── SUBMIT ───────────────────────────────────────────────────
+async function submitAttendance() {
+  const btn = document.getElementById("btn-submit");
+  const msg = document.getElementById("status-msg");
+  btn.disabled = true;
+  msg.style.display = "none";
+  if (state.trainingType === "Value") state.entValue = document.getElementById("value-input").value.trim();
+  try {
+    setProgress(20, "Saving attendance...");
+    const url = WEB_APP_URL
+      + "?action=attendance"
+      + "&uid="          + encodeURIComponent(state.uid          || "")
+      + "&name="         + encodeURIComponent(state.name         || "")
+      + "&trainerName="  + encodeURIComponent(state.trainerName  || "")
+      + "&trainingName=" + encodeURIComponent(state.trainingName || "")
+      + "&trainingType=" + encodeURIComponent(state.trainingType || "")
+      + "&subTraining="  + encodeURIComponent(state.subTraining  || "")
+      + "&entValue="     + encodeURIComponent(state.entValue     || "")
+      + "&lat="          + encodeURIComponent(state.lat          || "0")
+      + "&lng="          + encodeURIComponent(state.lng          || "0")
+      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"))
+      + "&photo="        + encodeURIComponent(state.photoBase64  || "");
 
-  document.getElementById("value-entry").style.display="none";
-  document.getElementById("value-input").value="";
-  document.getElementById("trn-badge").textContent="";
+    setProgress(50, "Waiting for server...");
+    const res = await jsonpFetch(url);
+    if (!res.success) throw new Error(res.error || "Server error");
+    setProgress(100, "Saved! ✅");
 
-  document.getElementById("img-preview").style.display="none";
-  document.getElementById("vid-preview").style.display="none";
-  document.getElementById("photo-note").style.display="none";
-  document.getElementById("btn-cam").style.display="inline-flex";
-  document.getElementById("btn-capture").style.display="none";
-  document.getElementById("btn-retake").style.display="none";
+    const displayName = (state.name || "Friend").trim();
+    const trnDisplay  = state.subTraining ? state.trainingName + " — " + state.subTraining : state.trainingName;
+    const dateStr     = state.timestamp ? state.timestamp.split(",")[0].trim() : new Date().toLocaleDateString("en-IN");
 
-  document.getElementById("loc-box").classList.remove("ok");
-  document.getElementById("loc-txt").textContent="Requesting location...";
+    setTimeout(() => {
+      document.getElementById("progress-bar").style.display   = "none";
+      document.getElementById("progress-label").style.display = "none";
+      btn.style.display = "none";
+      document.querySelectorAll(".step-card").forEach(c => c.style.display = "none");
+      document.getElementById("info-card").style.display = "none";
+      msg.className = "status-msg success";
+      msg.innerHTML =
+        "<div style='font-size:40px;margin-bottom:8px;'>🎉</div>" +
+        "<div style='font-size:18px;font-weight:800;color:#1b5e20;margin-bottom:6px;'>Thank You, " + displayName + "!</div>" +
+        "<div style='font-size:14px;color:#2e7d32;line-height:1.8;'>Attendance for <strong>" + trnDisplay + "</strong><br>on <strong>" + dateStr + "</strong> has been saved.</div>" +
+        "<div style='margin-top:20px;'><button onclick='nextBeneficiary()' style='background:#0b78ba;color:white;border:none;border-radius:8px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%;'>👤 Next Beneficiary</button></div>" +
+        "<div style='margin-top:12px;font-size:12px;color:#888;'>Trainer: <strong>" + state.trainerName + "</strong></div>";
+    }, 600);
 
-  document.getElementById("btn-submit").disabled=true;
-  document.getElementById("suc").classList.remove("on");
-  document.getElementById("submit-area").classList.remove("on");
-  document.getElementById("prog-wrap").style.display="none";
-  document.getElementById("prog-fill").style.width="0%";
+  } catch(e) {
+    document.getElementById("progress-bar").style.display   = "none";
+    document.getElementById("progress-label").style.display = "none";
+    msg.className = "status-msg error";
+    msg.textContent = "❌ ERROR: " + e.message;
+    btn.disabled = false;
+  }
+}
 
-  document.querySelectorAll(".step").forEach(c=>c.classList.remove("on"));
-  show("s1");
+// ── NEXT BENEFICIARY ─────────────────────────────────────────
+function nextBeneficiary() {
+  state.uid=""; state.name=""; state.shg=""; state.cln="";
+  state.trainingName=""; state.trainingType=""; state.subTraining=""; state.entValue="";
+  state.lat=null; state.lng=null; state.timestamp=""; state.photoBase64=""; state.photoStream=null;
+
+  ["ben","trn","sub"].forEach(w => {
+    if (scanners[w]) { try { scanners[w].stop(); } catch(e) {} scanners[w]=null; }
+    document.getElementById(w+"-scan-result").classList.remove("show");
+    document.getElementById(w+"-qr-wrap").style.display    = "none";
+    document.getElementById(w+"-placeholder").style.display = "flex";
+    document.getElementById("btn-"+w+"-scan").disabled     = false;
+    document.getElementById(w+"-error-box").style.display  = "none";
+    document.getElementById(w+"-manual-row").style.display = "none";
+    document.getElementById(w+"-manual-input").value       = "";
+  });
+  document.getElementById("btn-ben-scan").textContent = "📷 Scan Beneficiary QR";
+  document.getElementById("btn-trn-scan").textContent = "📷 Scan Training QR";
+  document.getElementById("btn-sub-scan").textContent = "📷 Scan Sub-Training QR";
+  document.getElementById("value-input-box").style.display = "none";
+  document.getElementById("value-input").value = "";
+  document.getElementById("display-name").textContent  = "—";
+  document.getElementById("display-uid").textContent   = "Scan beneficiary QR to begin";
+  document.getElementById("display-extra").textContent = "";
+  document.getElementById("info-card").style.display   = "flex";
+  document.getElementById("status-msg").style.display  = "none";
+  document.getElementById("status-msg").className      = "status-msg";
+  const btn = document.getElementById("btn-submit");
+  btn.style.display="none"; btn.classList.remove("show"); btn.disabled=true;
+  document.getElementById("photo-preview").style.display   = "none";
+  document.getElementById("camera-preview").style.display  = "none";
+  document.getElementById("btn-open-camera").style.display = "inline-flex";
+  document.getElementById("btn-capture").style.display     = "none";
+  document.getElementById("btn-retake").style.display      = "none";
+  document.getElementById("loc-status").classList.remove("success");
+  document.getElementById("loc-text").textContent = "Requesting location...";
+  document.querySelectorAll(".step-card").forEach(c => c.classList.remove("active"));
+  showCard("card-beneficiary");
   getLocation();
-  window.scrollTo({top:0,behavior:"smooth"});
+  window.scrollTo({ top:0, behavior:"smooth" });
 }
 </script>
 </body>
