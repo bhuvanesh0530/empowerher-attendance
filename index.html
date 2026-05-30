@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>EmpowerHer — Trainer Attendance</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --ink:       #0D1B2A;
@@ -24,22 +24,21 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh;}
 
-/* ── TOP BAR ── */
+/* TOP BAR */
 .topbar{
-  background:var(--accent);
-  padding:14px 18px;display:flex;align-items:center;gap:10px;
-  position:sticky;top:0;z-index:200;
-  box-shadow:0 3px 12px rgba(11,110,187,.35);
+  background:linear-gradient(135deg,#0C447C 0%,#185FA5 55%,#378ADD 100%);
+  color:white;padding:14px 16px;
+  display:flex;align-items:center;gap:10px;
+  font-size:17px;font-weight:700;
+  box-shadow:0 2px 6px rgba(0,0,0,0.2);
+  position:sticky;top:0;z-index:100;
 }
-.topbar-logo{width:32px;height:32px;background:rgba(255,255,255,.18);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;}
-.topbar h1{color:#fff;font-size:16px;font-weight:800;letter-spacing:-.3px;}
 .topbar-sub{color:rgba(255,255,255,.7);font-size:11px;margin-left:auto;font-weight:500;}
 
-/* ── CONTAINER ── */
+/* CONTAINER */
 .wrap{max-width:480px;margin:0 auto;padding:16px;}
 
-/* ── MEMBER HERO ── */
+/* MEMBER HERO */
 .member-hero{
   background:var(--card);border-radius:var(--r);
   padding:14px 16px;margin-bottom:14px;
@@ -55,7 +54,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--surface);color:
 .mh-uid{font-size:12px;color:var(--muted);margin-top:2px;}
 .mh-extra{font-size:11px;color:var(--accent);font-weight:700;margin-top:3px;}
 
-/* ── TRAINER STRIP ── */
+/* TRAINER STRIP */
 .trainer-strip{
   background:#E8F4FF;border-radius:8px;padding:9px 14px;
   margin-bottom:14px;display:none;
@@ -64,7 +63,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--surface);color:
 .trainer-strip.on{display:flex;}
 .trainer-strip .chg{margin-left:auto;font-size:12px;text-decoration:underline;cursor:pointer;font-weight:600;}
 
-/* ── STEP CARD ── */
+/* STEP CARD */
 .step{
   background:var(--card);border-radius:var(--r);padding:18px;
   box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:14px;
@@ -75,13 +74,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--surface);color:
 
 .step-hd{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .step-num{
-  width:26px;height:26px;border-radius:50%;background:var(--accent);
-  color:#fff;font-size:12px;font-weight:800;
+  width:28px;height:28px;border-radius:50%;background:var(--accent);
+  color:#fff;font-size:13px;font-weight:800;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .step-title{font-size:15px;font-weight:700;color:var(--ink);}
 
-/* ── INPUT ── */
+/* INPUT */
 label.lbl{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
 input.field{
   width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:9px;
@@ -89,17 +88,8 @@ input.field{
   transition:border-color .2s;
 }
 input.field:focus{border-color:var(--accent);}
-select.field{
-  width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:9px;
-  font-size:14px;font-family:inherit;outline:none;color:var(--ink);
-  background:#fff;appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237A93A8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 12px center;
-  transition:border-color .2s;cursor:pointer;
-}
-select.field:focus{border-color:var(--accent);}
 
-/* ── BUTTONS ── */
+/* BUTTONS */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
   padding:11px 18px;border:none;border-radius:9px;
@@ -111,12 +101,10 @@ select.field:focus{border-color:var(--accent);}
 .btn-primary:not(:disabled):hover{background:#0A5FA5;transform:translateY(-1px);}
 .btn-ghost{background:var(--surface);color:var(--mid);border:1px solid var(--border);}
 .btn-ghost:hover{background:var(--border);}
-.btn-success{background:var(--accent2);color:#fff;}
-.btn-success:not(:disabled):hover{background:#077A50;}
 .btn-full{width:100%;}
 .btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
 
-/* ── QR ── */
+/* QR SCANNER */
 .qr-shell{
   background:var(--surface);border:2px dashed var(--border);
   border-radius:10px;padding:28px 20px;
@@ -128,18 +116,19 @@ select.field:focus{border-color:var(--accent);}
 .qr-live video{width:100%;display:block;}
 .qr-frame-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
 .qr-frame{
-  width:170px;height:170px;border:3px solid #fff;border-radius:10px;
-  box-shadow:0 0 0 2000px rgba(0,0,0,.55);
+  width:180px;height:180px;border:3px solid #fff;border-radius:12px;
+  box-shadow:0 0 0 2000px rgba(0,0,0,.5);
   position:relative;overflow:hidden;
 }
 .qr-scan-line{
   position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  background:linear-gradient(90deg,transparent,#0b78ba,transparent);
   animation:scanLine 1.8s linear infinite;
 }
 @keyframes scanLine{0%{top:0}100%{top:calc(100% - 3px)}}
 .qr-hint{position:absolute;bottom:8px;width:100%;text-align:center;color:rgba(255,255,255,.8);font-size:12px;}
 
+/* RESULT PILL */
 .result-pill{
   display:none;align-items:center;gap:8px;
   background:#EDFAF3;border:1px solid #4CAF50;border-radius:8px;
@@ -148,12 +137,14 @@ select.field:focus{border-color:var(--accent);}
 .result-pill.on{display:flex;}
 .result-pill span{color:#2e7d32;font-weight:700;font-size:14px;}
 
+/* ERROR BOX */
 .err-box{
   background:#FFF5F5;border:1px solid #FCA5A5;border-radius:8px;
   padding:12px;margin-top:10px;display:none;
 }
 .err-box p{color:var(--danger);font-size:13px;margin-bottom:8px;}
 
+/* MANUAL ROW */
 .manual-row{display:none;gap:8px;margin-top:10px;}
 .manual-row input{flex:1;}
 .manual-row button{
@@ -161,7 +152,7 @@ select.field:focus{border-color:var(--accent);}
   border:none;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;
 }
 
-/* ── TYPE BADGE ── */
+/* TYPE BADGE */
 .type-badge{
   display:inline-block;padding:3px 10px;border-radius:20px;
   font-size:11px;font-weight:800;margin-top:5px;letter-spacing:.3px;
@@ -170,15 +161,16 @@ select.field:focus{border-color:var(--accent);}
 .tb-sdtc{background:#F3E8FF;color:var(--sdtc);}
 .tb-value{background:#FFF3E0;color:var(--value-clr);}
 
+/* VALUE ENTRY */
 .value-entry{margin-top:12px;display:none;}
 
-/* ── SDTC NOTE ── */
+/* SDTC NOTE */
 .sdtc-note{
   background:#F3E8FF;border-radius:8px;padding:10px 12px;
   font-size:13px;color:var(--sdtc);font-weight:700;margin-bottom:12px;
 }
 
-/* ── LOCATION ── */
+/* LOCATION */
 .loc-box{
   padding:12px 14px;border-radius:9px;font-size:14px;
   background:#FFF8EE;border:1px solid #FBBF24;color:var(--warn);
@@ -186,19 +178,19 @@ select.field:focus{border-color:var(--accent);}
 }
 .loc-box.ok{background:#EDFAF3;border-color:#4CAF50;color:#1b5e20;}
 
-/* ── PHOTO ── */
+/* PHOTO */
 .photo-area{display:flex;flex-direction:column;gap:10px;}
 #vid-preview{width:100%;border-radius:8px;background:#000;display:none;}
 #img-preview{width:100%;border-radius:8px;border:2px solid var(--accent2);display:none;max-height:200px;object-fit:cover;}
 .photo-note{font-size:11px;color:var(--muted);text-align:center;display:none;}
 
-/* ── PROGRESS ── */
+/* PROGRESS */
 .prog-wrap{margin-top:12px;display:none;}
 .prog-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),#41B3F5);border-radius:4px;transition:width .4s;}
 .prog-lbl{text-align:center;font-size:12px;color:var(--accent);font-weight:700;margin-top:6px;}
 
-/* ── SUCCESS ── */
+/* SUCCESS */
 .success-screen{
   display:none;background:var(--card);border-radius:16px;
   padding:36px 24px;text-align:center;margin-top:8px;
@@ -209,55 +201,31 @@ select.field:focus{border-color:var(--accent);}
 .suc-head{font-size:20px;font-weight:800;color:#1b5e20;}
 .suc-body{font-size:14px;color:var(--mid);margin-top:8px;line-height:1.7;}
 
-/* ── SUBMIT BTN AREA ── */
+/* SUBMIT */
 .submit-area{display:none;margin-top:4px;}
 .submit-area.on{display:block;}
 .btn-submit{
   width:100%;padding:16px;border:none;border-radius:10px;
   font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;
-  background:linear-gradient(135deg,#0A8A5C,#0B6EBB);color:#fff;
-  box-shadow:0 4px 16px rgba(10,138,92,.35);
+  background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;
+  box-shadow:0 4px 16px rgba(46,125,50,.35);
   display:flex;align-items:center;justify-content:center;gap:8px;
   transition:all .2s;
 }
-.btn-submit:disabled{background:#ccc;box-shadow:none;cursor:not-allowed;}
-.btn-submit:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(10,138,92,.45);}
-
-/* ── TRAINING DROPDOWN SEARCH ── */
-.trn-search{position:relative;}
-.trn-search-input{padding-right:40px;}
-.trn-dropdown{
-  position:absolute;left:0;right:0;top:calc(100% + 4px);
-  background:#fff;border:2px solid var(--border);border-radius:10px;
-  max-height:220px;overflow-y:auto;z-index:50;
-  box-shadow:0 8px 24px rgba(0,0,0,.12);display:none;
-}
-.trn-dropdown.open{display:block;}
-.trn-option{
-  padding:10px 14px;font-size:13px;cursor:pointer;
-  border-bottom:1px solid var(--surface);color:var(--ink);
-  transition:background .15s;
-}
-.trn-option:hover{background:var(--surface);}
-.trn-option .trn-type{font-size:10px;font-weight:800;margin-left:6px;
-  padding:2px 7px;border-radius:10px;}
-.trn-option:last-child{border-bottom:none;}
-
+.btn-submit:disabled{background:#bdbdbd;box-shadow:none;cursor:not-allowed;}
+.btn-submit:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(46,125,50,.45);}
 </style>
 </head>
 <body>
 
 <!-- TOP BAR -->
 <div class="topbar">
-  <div class="topbar-logo">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
-  </div>
-  <h1>EmpowerHer Attendance</h1>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+    <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+    <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+    <line x1="3" y1="12" x2="21" y2="12"/>
+  </svg>
+  EmpowerHer Attendance
   <span class="topbar-sub">Trainer Mode</span>
 </div>
 
@@ -290,43 +258,44 @@ select.field:focus{border-color:var(--accent);}
 
   <!-- ══ STEP 0: TRAINER NAME ══ -->
   <div class="step on" id="s0">
-    <div class="step-hd"><div class="step-num">0</div><div class="step-title">Trainer Details</div></div>
-    <label class="lbl">Your Name (Trainer)</label>
-    <input class="field" id="trainer-input" placeholder="Enter your full name..."
+    <div class="step-hd"><div class="step-num">0</div><div class="step-title">Enter Trainer Name</div></div>
+    <label class="lbl">Your Name (Trainer) — enter once per session</label>
+    <input class="field" id="trainer-input" placeholder="Type your name here..."
            onkeydown="if(event.key==='Enter')confirmTrainer()">
     <div class="btn-row">
-      <button class="btn btn-primary btn-full" style="margin-top:4px" onclick="confirmTrainer()">
-        ✔ Confirm &amp; Start
-      </button>
+      <button class="btn btn-primary btn-full" onclick="confirmTrainer()">✔ Confirm &amp; Start Scanning</button>
     </div>
   </div>
 
   <!-- ══ STEP 1: BENEFICIARY QR ══ -->
   <div class="step" id="s1">
-    <div class="step-hd"><div class="step-num">1</div><div class="step-title">Scan Beneficiary QR</div></div>
+    <div class="step-hd"><div class="step-num">1</div><div class="step-title">Scan Beneficiary QR Code</div></div>
     <div class="qr-shell" id="ben-shell">
-      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#0B6EBB" stroke-width="1.5">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0b78ba" stroke-width="1.5">
         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
         <rect x="3" y="14" width="7" height="7"/>
-        <rect x="5" y="5" width="3" height="3" fill="#0B6EBB"/>
-        <rect x="16" y="5" width="3" height="3" fill="#0B6EBB"/>
-        <rect x="5" y="16" width="3" height="3" fill="#0B6EBB"/>
+        <rect x="5" y="5" width="3" height="3" fill="#0b78ba"/>
+        <rect x="16" y="5" width="3" height="3" fill="#0b78ba"/>
+        <rect x="5" y="16" width="3" height="3" fill="#0b78ba"/>
       </svg>
-      <p>Scan the QR code on the beneficiary's ID card</p>
+      <p>Tap below to scan the beneficiary QR on the ID card</p>
     </div>
     <div class="qr-live" id="ben-live">
       <video id="ben-video" autoplay playsinline muted></video>
       <canvas id="ben-canvas" style="display:none"></canvas>
       <div class="qr-frame-wrap"><div class="qr-frame"><div class="qr-scan-line"></div></div></div>
-      <div class="qr-hint">Hold QR inside the frame</div>
+      <div class="qr-hint">Hold QR code steady inside the box</div>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="btn-ben" onclick="startScanner('ben')" style="flex:1">📷 Scan Beneficiary QR</button>
       <button class="btn btn-ghost" onclick="toggleManual('ben')">⌨️ Manual</button>
     </div>
-    <div class="err-box" id="ben-err"><p id="ben-err-txt">Camera error.</p>
-      <div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="retryScanner('ben')">🔄 Retry</button>
-      <button class="btn btn-ghost" onclick="toggleManual('ben')">⌨️ Manual</button></div>
+    <div class="err-box" id="ben-err">
+      <p id="ben-err-txt">Could not access camera.</p>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="retryScanner('ben')">🔄 Retry</button>
+        <button class="btn btn-ghost" onclick="toggleManual('ben')">⌨️ Manual</button>
+      </div>
     </div>
     <div class="manual-row" id="ben-manual">
       <input class="field" id="ben-mi" placeholder="Type Unique ID (e.g. EMP-001)">
@@ -338,80 +307,109 @@ select.field:focus{border-color:var(--accent);}
     </div>
   </div>
 
-  <!-- ══ STEP 2: TRAINING SELECTION ══ -->
+  <!-- ══ STEP 2: TRAINING QR ══ -->
   <div class="step" id="s2">
-    <div class="step-hd"><div class="step-num">2</div><div class="step-title">Select Training</div></div>
-    <label class="lbl">Search or Select Training</label>
-    <div class="trn-search">
-      <input class="field trn-search-input" id="trn-search-input" placeholder="Type to search training..."
-             oninput="filterTrainings()" onfocus="openTrnDrop()" autocomplete="off">
-      <div class="trn-dropdown" id="trn-dropdown"></div>
+    <div class="step-hd"><div class="step-num">2</div><div class="step-title">Scan Training QR Code</div></div>
+    <div class="qr-shell" id="trn-shell">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0b78ba" stroke-width="1.5">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+        <rect x="5" y="5" width="3" height="3" fill="#0b78ba"/>
+        <rect x="16" y="5" width="3" height="3" fill="#0b78ba"/>
+        <rect x="5" y="16" width="3" height="3" fill="#0b78ba"/>
+      </svg>
+      <p>Tap below to scan the training QR code</p>
     </div>
-    <div class="result-pill" id="trn-result" style="margin-top:10px">
+    <div class="qr-live" id="trn-live">
+      <video id="trn-video" autoplay playsinline muted></video>
+      <canvas id="trn-canvas" style="display:none"></canvas>
+      <div class="qr-frame-wrap"><div class="qr-frame"><div class="qr-scan-line"></div></div></div>
+      <div class="qr-hint">Scan the training QR code</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-trn" onclick="startScanner('trn')" style="flex:1">📷 Scan Training QR</button>
+      <button class="btn btn-ghost" onclick="toggleManual('trn')">⌨️ Manual</button>
+    </div>
+    <div class="err-box" id="trn-err">
+      <p id="trn-err-txt">Could not access camera.</p>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="retryScanner('trn')">🔄 Retry</button>
+        <button class="btn btn-ghost" onclick="toggleManual('trn')">⌨️ Manual</button>
+      </div>
+    </div>
+    <div class="manual-row" id="trn-manual">
+      <input class="field" id="trn-mi" placeholder="Type training name...">
+      <button onclick="manualSet('trn')">✔</button>
+    </div>
+    <div class="result-pill" id="trn-result">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      <div><span id="trn-result-txt">Training selected!</span><br>
-        <span class="type-badge" id="trn-badge"></span></div>
+      <div>
+        <span id="trn-result-txt">Training scanned!</span><br>
+        <span class="type-badge" id="trn-badge"></span>
+      </div>
     </div>
     <div class="value-entry" id="value-entry">
-      <label class="lbl">Enter Value / Amount (₹)</label>
+      <label class="lbl">Enter the Value / Amount (₹)</label>
       <input class="field" type="number" id="value-input" placeholder="e.g. 5000" oninput="checkReady()">
     </div>
   </div>
 
-  <!-- ══ STEP 3: SUB-TRAINING (SDTC) ══ -->
+  <!-- ══ STEP 3: SUB-TRAINING QR (SDTC only) ══ -->
   <div class="step" id="s3">
-    <div class="step-hd"><div class="step-num">3</div><div class="step-title">Sub-Training</div></div>
-    <div class="sdtc-note">📋 SDTC training selected — please specify the sub-training trade</div>
-    <label class="lbl">Sub-Training / Trade Name</label>
+    <div class="step-hd"><div class="step-num">3</div><div class="step-title">Scan Sub-Training QR Code</div></div>
+    <div class="sdtc-note">📋 SDTC detected — scan sub-training QR (e.g. Aari / Tailoring)</div>
     <div class="qr-shell" id="sub-shell">
-      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#6B46C1" stroke-width="1.5">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6B46C1" stroke-width="1.5">
         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
         <rect x="3" y="14" width="7" height="7"/>
         <rect x="5" y="5" width="3" height="3" fill="#6B46C1"/>
         <rect x="16" y="5" width="3" height="3" fill="#6B46C1"/>
         <rect x="5" y="16" width="3" height="3" fill="#6B46C1"/>
       </svg>
-      <p>Scan the sub-training QR code (e.g. Aari, Tailoring)</p>
+      <p>Tap below to scan the sub-training QR (e.g. Aari, Tailoring)</p>
     </div>
     <div class="qr-live" id="sub-live">
       <video id="sub-video" autoplay playsinline muted></video>
       <canvas id="sub-canvas" style="display:none"></canvas>
       <div class="qr-frame-wrap"><div class="qr-frame"><div class="qr-scan-line"></div></div></div>
-      <div class="qr-hint">Scan sub-training QR</div>
+      <div class="qr-hint">Scan Aari / Tailoring QR code</div>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="btn-sub" onclick="startScanner('sub')" style="flex:1;background:#6B46C1">📷 Scan Sub-Training QR</button>
       <button class="btn btn-ghost" onclick="toggleManual('sub')">⌨️ Manual</button>
     </div>
-    <div class="err-box" id="sub-err"><p id="sub-err-txt">Camera error.</p>
-      <div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="retryScanner('sub')">🔄 Retry</button>
-      <button class="btn btn-ghost" onclick="toggleManual('sub')">⌨️ Manual</button></div>
+    <div class="err-box" id="sub-err">
+      <p id="sub-err-txt">Could not access camera.</p>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="retryScanner('sub')">🔄 Retry</button>
+        <button class="btn btn-ghost" onclick="toggleManual('sub')">⌨️ Manual</button>
+      </div>
     </div>
     <div class="manual-row" id="sub-manual">
-      <input class="field" id="sub-mi" placeholder="e.g. Aari, Tailoring, Welding...">
+      <input class="field" id="sub-mi" placeholder="Type sub-training (e.g. Aari)...">
       <button onclick="manualSet('sub')">✔</button>
     </div>
     <div class="result-pill" id="sub-result">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      <span id="sub-result-txt">Sub-training captured!</span>
+      <span id="sub-result-txt">Sub-training scanned!</span>
     </div>
   </div>
 
   <!-- ══ STEP 4: LOCATION ══ -->
   <div class="step" id="s4">
-    <div class="step-hd"><div class="step-num">4</div><div class="step-title">Location</div></div>
+    <div class="step-hd"><div class="step-num">4</div><div class="step-title">Capture Location</div></div>
     <div class="loc-box" id="loc-box">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <span id="loc-txt">Requesting GPS location…</span>
+      <span id="loc-txt">Requesting location...</span>
     </div>
   </div>
 
   <!-- ══ STEP 5: PHOTO ══ -->
   <div class="step" id="s5">
-    <div class="step-hd"><div class="step-num">5</div><div class="step-title">Attendance Photo</div></div>
+    <div class="step-hd"><div class="step-num">5</div><div class="step-title">Take Attendance Photo</div></div>
     <div class="photo-area">
       <video id="vid-preview" autoplay playsinline></video>
-      <img   id="img-preview" alt="Photo">
+      <img   id="img-preview" alt="Captured photo">
       <div class="photo-note" id="photo-note"></div>
       <div class="btn-row">
         <button class="btn btn-primary" id="btn-cam"     onclick="openCamera()">📷 Open Camera</button>
@@ -432,67 +430,42 @@ select.field:focus{border-color:var(--accent);}
     </div>
   </div>
 
-  <!-- SUCCESS SCREEN -->
+  <!-- SUCCESS -->
   <div class="success-screen" id="suc"></div>
 
-</div><!-- /wrap -->
+</div>
 
 <script>
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 // CONFIG
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 const WEB_APP_URL  = "https://script.google.com/macros/s/AKfycbyYVpqUkTSrXn9gTx7yHuHDLSpn2utRQXtcXVgQIehwwFpE7fFjGlAjXuyojho1BmuX/exec";
 const DRIVE_FOLDER = "13KwAhVgjFqg0BaYe6P1k5h5L_H5H_97b";
 const PHOTO_W = 120, PHOTO_H = 90, PHOTO_Q = 0.25;
 
-// ═══════════════════════════════════════════════
-// TRAINING LIST — all 43 trainings with types
-// Types: Normal | SDTC | Value
-// ═══════════════════════════════════════════════
-const TRAININGS = [
-  {name:"SM 1.1. Refresher Training on SHG Management and Vision Plan to CLNs",                      type:"Normal"},
-  {name:"SM 1.2. Refresher Training on Financial and Digital Literacy to CLN Leaders",               type:"Normal"},
-  {name:"SM 1.3. Training of CLN members on Digital Literacy",                                       type:"Normal"},
-  {name:"SM 1.4. Training of CLN members on Enterprise Motivation and Development",                  type:"Normal"},
-  {name:"SM 1.4 Member needs through BMT",                                                           type:"Normal"},
-  {name:"SDTC 1.5 Skill training for the identified CLN members for creating / strengthening family based enterprises (FBE)", type:"SDTC"},
-  {name:"ENT 1.6 No. of FBE established or enhanced in target communities",                         type:"Normal"},
-  {name:"ENT 1.6 Investment",                                                                        type:"Value"},
-  {name:"ENT 1.6 Present income",                                                                    type:"Value"},
-  {name:"ENT 1.7 No. of women with increase in access to credit",                                   type:"Normal"},
-  {name:"ENT 1.7 No. of women with increase in access to Market",                                   type:"Normal"},
-  {name:"ENT 1.8 No. of Energy audit reports and technical trainings",                              type:"Normal"},
-  {name:"ENT 1.9 No. of women adopts energy efficient modes of running their enterprises",           type:"Normal"},
-  {name:"ENT 1.10 70% of 4000 (2800) trained women establishes energy efficient enterprises",       type:"Normal"},
-  {name:"ENT 2.1 Conduct need assessment / Market Survey",                                          type:"Normal"},
-  {name:"SDTC 2.2 No. of women skill trained under Advanced Entrepreneurship programme",            type:"SDTC"},
-  {name:"ENT 2.3 Women Digital",                                                                     type:"Normal"},
-  {name:"ENT 2.3 Promote Advanced Enterprise Development (From FBE's to ME's)",                     type:"Normal"},
-  {name:"ENT 2.3 Trade specific exposure visits",                                                    type:"Normal"},
-  {name:"ENT 2.4 Promote Tie Ups with Business Institutes for training women entrepreneur",         type:"Normal"},
-  {name:"ENT 2.5 Identify and trained business mentors for continued support for Women's Advanced Enterprises (Year 4)", type:"Normal"},
-  {name:"SM 3.1 Development of courses on Gender and Environment",                                  type:"Normal"},
-  {name:"SM 3.2. Training CLN members on Human Rights and Gender Issues",                           type:"Normal"},
-  {name:"SM 3.3. Training CLN members on Community Development Issues including Education, Health, Sanitation and Environment", type:"Normal"},
-  {name:"SM 3.4. Vision Plans relating to Community Development developed by CLNs",                 type:"Normal"},
-  {name:"SM 3.5. 100 CLNs undertaking sustainable community development initiatives",               type:"Normal"},
-  {name:"SM 3.6. Meeting at Block Level",                                                            type:"Normal"},
-  {name:"SM 3.7. Women participating Grama Sabha Meetings",                                         type:"Normal"},
-  {name:"SM 3.8. 7500 Men trained on Gender Equality Issues",                                       type:"Normal"},
-  {name:"SM 3.9. Male Role Model Champions created",                                                type:"Normal"},
-  {name:"SM 3.10. No. of Trainees 3500 Male/Family members participating in Community Development work with CLN Members", type:"Normal"},
-  {name:"ENT 4.1 Development of courses developed for youths on digital literacy",                  type:"Normal"},
-  {name:"ENT 4.2 ToTs organised to train master trainers on digital inclusion of youths",           type:"Normal"},
-  {name:"ENT 4.3 No. of Youths trained on digital literacy",                                        type:"Normal"},
-  {name:"SDTC 4.4 No. of youths trained on English and Computers",                                  type:"SDTC"},
-];
+// ══════════════════════════════════════════
+// TRAINING TYPE DETECTION
+// The QR on each training card contains the training name.
+// We detect the type from that scanned text:
+//   SDTC  → starts with "SDTC"
+//   Value → ENT 1.6 Investment / ENT 1.6 Present income
+//   Normal → everything else
+// ══════════════════════════════════════════
+function detectType(name) {
+  const n = name.trim().toUpperCase();
+  if (n.startsWith("SDTC"))                                        return "SDTC";
+  if (n.includes("1.6 INVESTMENT") || n.includes("1.6 PRESENT"))  return "Value";
+  if (n.startsWith("ENT 1.7") || n.startsWith("ENT 1.8") ||
+      n.startsWith("ENT 1.9") || n.startsWith("ENT 1.10"))        return "Value";
+  return "Normal";
+}
 
-const TYPE_COLORS = {Normal:"tb-normal", SDTC:"tb-sdtc", Value:"tb-value"};
 const TYPE_LABELS = {Normal:"Normal Training", SDTC:"SDTC — Sub-training required", Value:"Value Entry Required"};
+const TYPE_CSS    = {Normal:"tb-normal",        SDTC:"tb-sdtc",                      Value:"tb-value"};
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 const S = {
   trainer:"", uid:"", name:"", shg:"", cln:"",
   trainingName:"", trainingType:"",
@@ -500,25 +473,22 @@ const S = {
   lat:null, lng:null, ts:"",
   photoB64:"", photoStream:null,
 };
-const SC = {ben:null, sub:null};
+const SC = {}; // active scanner intervals
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════════
-window.onload = () => {
-  buildTrnDropdown();
-  getLocation();
-  document.addEventListener("click", e => {
-    if (!e.target.closest(".trn-search")) closeTrnDrop();
-  });
-};
+// ══════════════════════════════════════════
+window.onload = () => { getLocation(); };
 
-function show(id){ const el=document.getElementById(id); if(el){el.classList.add("on"); el.scrollIntoView({behavior:"smooth",block:"start"});} }
+function show(id){
+  const el = document.getElementById(id);
+  if(el){ el.classList.add("on"); setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),120); }
+}
 function hide(id){ const el=document.getElementById(id); if(el) el.classList.remove("on"); }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 // STEP 0: TRAINER
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 function confirmTrainer(){
   const n = document.getElementById("trainer-input").value.trim();
   if(!n){ alert("Please enter your name."); return; }
@@ -534,26 +504,30 @@ function changeTrainer(){
   document.getElementById("trainer-input").focus();
 }
 
-// ═══════════════════════════════════════════════
-// QR SCANNER
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
+// QR SCANNER ENGINE  (same as original)
+// ══════════════════════════════════════════
 async function startScanner(which){
-  const btnId = "btn-" + which;
-  const btn   = document.getElementById(btnId);
-  document.getElementById(which+"-err").style.display = "none";
+  const btn = document.getElementById("btn-" + which);
+  document.getElementById(which+"-err").style.display   = "none";
   document.getElementById(which+"-shell").style.display = "none";
   document.getElementById(which+"-live").style.display  = "block";
   btn.disabled = true;
-  btn.textContent = "⏳ Starting…";
+  btn.textContent = "⏳ Starting camera...";
 
   let stream;
   try {
-    try { stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:"environment"},width:{ideal:1280}}});
-    } catch(e) { stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); }
-  } catch(err) {
-    showScanErr(which, "Camera permission denied. Tap Manual to type.");
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:{exact:"environment"},width:{ideal:1280},height:{ideal:720}}
+      });
+    } catch(e){
+      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    }
+  } catch(err){
+    showErr(which, "Camera permission denied. Please allow camera access and tap Manual.");
     btn.disabled = false;
-    btn.textContent = which==="ben" ? "📷 Scan Beneficiary QR" : "📷 Scan Sub-Training QR";
+    btn.textContent = btnLabel(which);
     return;
   }
 
@@ -563,48 +537,53 @@ async function startScanner(which){
 
   let active = true;
 
-  function stop(){
+  function stopStream(){
     active = false;
     if(SC[which]) clearInterval(SC[which]);
-    stream.getTracks().forEach(t => t.stop());
+    stream.getTracks().forEach(t=>t.stop());
     SC[which] = null;
   }
 
   async function tryDecode(){
     if(!active || video.readyState < 2) return;
-    // Native BarcodeDetector
+    // Try native BarcodeDetector first
     if(typeof BarcodeDetector !== "undefined"){
       try {
         const d = new BarcodeDetector({formats:["qr_code"]});
-        const res = await d.detect(video);
-        if(res.length){ stop(); onScanSuccess(which, res[0].rawValue); return; }
+        const bc = await d.detect(video);
+        if(bc.length){ stopStream(); onScanSuccess(which, bc[0].rawValue); return; }
       } catch(e){}
     }
     // jsQR fallback
     if(!window.jsQR) return;
     const c = document.getElementById(which+"-canvas");
     const ctx = c.getContext("2d");
-    const w = video.videoWidth || 640, h = video.videoHeight || 480;
-    c.width = w; c.height = h;
-    ctx.drawImage(video, 0, 0, w, h);
-    const code = window.jsQR(ctx.getImageData(0,0,w,h).data, w, h, {inversionAttempts:"dontInvert"});
-    if(code && code.data){ stop(); onScanSuccess(which, code.data); }
+    const w = video.videoWidth||640, h = video.videoHeight||480;
+    c.width=w; c.height=h;
+    ctx.drawImage(video,0,0,w,h);
+    const code = window.jsQR(ctx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:"dontInvert"});
+    if(code && code.data){ stopStream(); onScanSuccess(which, code.data); }
   }
 
   if(typeof BarcodeDetector === "undefined"){
     await new Promise((res,rej)=>{
-      if(window.jsQR){ res(); return; }
+      if(window.jsQR){res();return;}
       const s=document.createElement("script");
       s.src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js";
-      s.onload=res; s.onerror=rej;
-      document.head.appendChild(s);
+      s.onload=res; s.onerror=rej; document.head.appendChild(s);
     });
   }
   SC[which] = setInterval(tryDecode, 300);
-  btn.textContent = "🔍 Scanning…";
+  btn.textContent = "🔍 Scanning...";
 }
 
-function showScanErr(which, msg){
+function btnLabel(w){
+  if(w==="ben") return "📷 Scan Beneficiary QR";
+  if(w==="trn") return "📷 Scan Training QR";
+  return "📷 Scan Sub-Training QR";
+}
+
+function showErr(which, msg){
   document.getElementById(which+"-live").style.display  = "none";
   document.getElementById(which+"-shell").style.display = "flex";
   document.getElementById(which+"-err-txt").textContent = msg;
@@ -612,12 +591,11 @@ function showScanErr(which, msg){
 }
 
 function retryScanner(which){
-  if(SC[which]){ clearInterval(SC[which]); SC[which]=null; }
+  if(SC[which]){clearInterval(SC[which]);SC[which]=null;}
   document.getElementById(which+"-live").style.display  = "none";
   document.getElementById(which+"-shell").style.display = "flex";
   document.getElementById(which+"-err").style.display   = "none";
-  if(which==="ben") startScanner("ben");
-  else              startScanner("sub");
+  startScanner(which);
 }
 
 function toggleManual(which){
@@ -628,241 +606,213 @@ function toggleManual(which){
 
 function manualSet(which){
   const v = document.getElementById(which+"-mi").value.trim();
-  if(!v){ alert("Please enter a value."); return; }
+  if(!v){alert("Please enter a value.");return;}
   document.getElementById(which+"-manual").style.display = "none";
   onScanSuccess(which, v);
 }
 
+// ══════════════════════════════════════════
+// ON SCAN SUCCESS — handles all 3 scanners
+// ══════════════════════════════════════════
 async function onScanSuccess(which, text){
   const val = text.trim();
   document.getElementById(which+"-live").style.display = "none";
+  const btn = document.getElementById("btn-"+which);
+  btn.disabled = true;
+  btn.textContent = "✅ Scanned";
 
+  // ── BENEFICIARY ──
   if(which === "ben"){
     S.uid = val.toUpperCase();
-    // Lookup beneficiary
     try {
-      const j = await jsonpFetch(WEB_APP_URL + "?action=getmember&uid=" + encodeURIComponent(S.uid));
+      const j = await jsonpFetch(WEB_APP_URL+"?action=getmember&uid="+encodeURIComponent(S.uid));
       if(j.name){ S.name=j.name; S.shg=j.shg||""; S.cln=j.cln||""; }
-    } catch(e){ console.warn("Member lookup:", e); }
+    } catch(e){ console.warn("Lookup failed:",e); }
 
     document.getElementById("mh-name").textContent  = S.name || S.uid;
     document.getElementById("mh-uid").textContent   = S.uid;
-    document.getElementById("mh-extra").textContent = [S.shg, S.cln].filter(Boolean).join(" | ");
+    document.getElementById("mh-extra").textContent = [S.shg,S.cln].filter(Boolean).join(" | ");
     document.getElementById("ben-result-txt").textContent = "✅ " + (S.name || S.uid);
     document.getElementById("ben-result").classList.add("on");
+    setTimeout(()=>show("s2"), 600);
+  }
 
-    const btn = document.getElementById("btn-ben");
-    btn.disabled = true; btn.textContent = "✅ Scanned";
-    setTimeout(() => show("s2"), 500);
+  // ── TRAINING ──
+  else if(which === "trn"){
+    S.trainingName = val;
+    S.trainingType = detectType(val);
 
-  } else if(which === "sub"){
+    const badge = document.getElementById("trn-badge");
+    badge.textContent = TYPE_LABELS[S.trainingType];
+    badge.className   = "type-badge " + TYPE_CSS[S.trainingType];
+
+    document.getElementById("trn-result-txt").textContent = val;
+    document.getElementById("trn-result").classList.add("on");
+
+    if(S.trainingType === "Value"){
+      document.getElementById("value-entry").style.display = "block";
+    }
+
+    if(S.trainingType === "SDTC"){
+      setTimeout(()=>show("s3"), 600);
+    } else {
+      setTimeout(()=>{ show("s4"); show("s5"); document.getElementById("submit-area").classList.add("on"); checkReady(); }, 600);
+    }
+  }
+
+  // ── SUB-TRAINING ──
+  else if(which === "sub"){
     S.subTraining = val;
     document.getElementById("sub-result-txt").textContent = "✅ " + val;
     document.getElementById("sub-result").classList.add("on");
-    const btn = document.getElementById("btn-sub");
-    btn.disabled = true; btn.textContent = "✅ Scanned";
-    setTimeout(() => { show("s4"); show("s5"); document.getElementById("submit-area").classList.add("on"); checkReady(); }, 500);
+    setTimeout(()=>{ show("s4"); show("s5"); document.getElementById("submit-area").classList.add("on"); checkReady(); }, 500);
   }
 }
 
-// ═══════════════════════════════════════════════
-// STEP 2: TRAINING DROPDOWN
-// ═══════════════════════════════════════════════
-function buildTrnDropdown(filter=""){
-  const dd = document.getElementById("trn-dropdown");
-  const fl = filter.toLowerCase();
-  const list = TRAININGS.filter(t => !fl || t.name.toLowerCase().includes(fl));
-  dd.innerHTML = list.map(t => `
-    <div class="trn-option" onclick="selectTraining(${JSON.stringify(t.name)}, '${t.type}')">
-      ${t.name}
-      <span class="trn-type ${TYPE_COLORS[t.type]}">${t.type}</span>
-    </div>`).join("");
-  if(!list.length) dd.innerHTML = `<div class="trn-option" style="color:var(--muted)">No match found</div>`;
-}
-
-function filterTrainings(){
-  buildTrnDropdown(document.getElementById("trn-search-input").value);
-  openTrnDrop();
-}
-function openTrnDrop(){
-  buildTrnDropdown(document.getElementById("trn-search-input").value);
-  document.getElementById("trn-dropdown").classList.add("open");
-}
-function closeTrnDrop(){ document.getElementById("trn-dropdown").classList.remove("open"); }
-
-function selectTraining(name, type){
-  S.trainingName = name;
-  S.trainingType = type;
-  document.getElementById("trn-search-input").value = name;
-  closeTrnDrop();
-
-  const badge = document.getElementById("trn-badge");
-  badge.textContent = TYPE_LABELS[type];
-  badge.className   = "type-badge " + TYPE_COLORS[type];
-  document.getElementById("trn-result-txt").textContent = name.length > 60 ? name.slice(0,60)+"…" : name;
-  document.getElementById("trn-result").classList.add("on");
-
-  // Value type — show amount field
-  document.getElementById("value-entry").style.display = type==="Value" ? "block" : "none";
-  document.getElementById("value-input").value = "";
-
-  if(type === "SDTC"){
-    setTimeout(() => show("s3"), 400);
-  } else {
-    // Skip sub-training; go to location + photo
-    setTimeout(() => { show("s4"); show("s5"); document.getElementById("submit-area").classList.add("on"); checkReady(); }, 400);
-  }
-}
-
-// ═══════════════════════════════════════════════
-// STEP 4: LOCATION
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
+// LOCATION
+// ══════════════════════════════════════════
 function getLocation(){
-  if(!navigator.geolocation){ document.getElementById("loc-txt").textContent = "Geolocation not supported."; return; }
+  if(!navigator.geolocation){ document.getElementById("loc-txt").textContent="Geolocation not supported."; return; }
   navigator.geolocation.getCurrentPosition(
-    pos => {
+    pos=>{
       S.lat = pos.coords.latitude.toFixed(6);
       S.lng = pos.coords.longitude.toFixed(6);
       S.ts  = new Date().toLocaleString("en-IN");
-      const b = document.getElementById("loc-box");
-      b.classList.add("ok");
-      document.getElementById("loc-txt").textContent = "📍 " + S.lat + ", " + S.lng;
+      document.getElementById("loc-box").classList.add("ok");
+      document.getElementById("loc-txt").textContent = "📍 "+S.lat+", "+S.lng;
       checkReady();
     },
-    () => { document.getElementById("loc-txt").textContent = "⚠️ Location denied. Enable GPS."; },
-    {enableHighAccuracy:true, timeout:15000}
+    ()=>{ document.getElementById("loc-txt").textContent="⚠️ Location denied. Enable GPS and refresh."; },
+    {enableHighAccuracy:true,timeout:15000}
   );
 }
 
-// ═══════════════════════════════════════════════
-// STEP 5: PHOTO
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
+// PHOTO
+// ══════════════════════════════════════════
 async function openCamera(){
-  try {
+  try{
     let stream;
-    try { stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:320}}}); }
-    catch(e) { stream = await navigator.mediaDevices.getUserMedia({video:true}); }
-    S.photoStream = stream;
-    const v = document.getElementById("vid-preview");
-    v.srcObject = stream; v.style.display = "block";
-    document.getElementById("btn-cam").style.display     = "none";
-    document.getElementById("btn-capture").style.display = "inline-flex";
-  } catch(e) { alert("Camera access denied."); }
+    try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:320}}}); }
+    catch(e){ stream=await navigator.mediaDevices.getUserMedia({video:true}); }
+    S.photoStream=stream;
+    const v=document.getElementById("vid-preview");
+    v.srcObject=stream; v.style.display="block";
+    document.getElementById("btn-cam").style.display="none";
+    document.getElementById("btn-capture").style.display="inline-flex";
+  }catch(e){ alert("Camera access denied."); }
 }
 
 function capturePhoto(){
-  const v = document.getElementById("vid-preview");
-  const c = document.createElement("canvas");
+  const v=document.getElementById("vid-preview");
+  const c=document.createElement("canvas");
   c.width=PHOTO_W; c.height=PHOTO_H;
   c.getContext("2d").drawImage(v,0,0,PHOTO_W,PHOTO_H);
-  const dUrl  = c.toDataURL("image/jpeg", PHOTO_Q);
-  S.photoB64  = dUrl.split(",")[1];
-
+  const dUrl=c.toDataURL("image/jpeg",PHOTO_Q);
+  S.photoB64=dUrl.split(",")[1];
   if(S.photoStream) S.photoStream.getTracks().forEach(t=>t.stop());
-  v.style.display = "none";
-  const img = document.getElementById("img-preview");
-  img.src = dUrl; img.style.display = "block";
-
-  const note = document.getElementById("photo-note");
-  note.textContent = "Photo: " + (Math.round(S.photoB64.length * 0.75/1024*10)/10) + " KB (compressed)";
-  note.style.display = "block";
-
-  document.getElementById("btn-capture").style.display = "none";
-  document.getElementById("btn-retake").style.display  = "inline-flex";
+  v.style.display="none";
+  const img=document.getElementById("img-preview");
+  img.src=dUrl; img.style.display="block";
+  const note=document.getElementById("photo-note");
+  note.textContent="Photo: "+(Math.round(S.photoB64.length*0.75/1024*10)/10)+" KB (compressed)";
+  note.style.display="block";
+  document.getElementById("btn-capture").style.display="none";
+  document.getElementById("btn-retake").style.display="inline-flex";
   checkReady();
 }
 
 function retakePhoto(){
-  S.photoB64 = "";
-  document.getElementById("img-preview").style.display   = "none";
-  document.getElementById("photo-note").style.display    = "none";
-  document.getElementById("btn-retake").style.display    = "none";
-  document.getElementById("btn-cam").style.display       = "inline-flex";
+  S.photoB64="";
+  document.getElementById("img-preview").style.display="none";
+  document.getElementById("photo-note").style.display="none";
+  document.getElementById("btn-retake").style.display="none";
+  document.getElementById("btn-cam").style.display="inline-flex";
   checkReady();
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 // READY CHECK
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 function checkReady(){
-  const valueOk = S.trainingType !== "Value" || !!document.getElementById("value-input").value.trim();
-  const sdtcOk  = S.trainingType !== "SDTC"  || !!S.subTraining;
+  const valueOk = S.trainingType!=="Value" || !!document.getElementById("value-input").value.trim();
+  const sdtcOk  = S.trainingType!=="SDTC"  || !!S.subTraining;
   const ok = !!S.uid && !!S.trainingName && sdtcOk && valueOk && !!S.lat && !!S.photoB64;
   document.getElementById("btn-submit").disabled = !ok;
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 // JSONP
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 function jsonpFetch(url){
-  return new Promise((res, rej) => {
-    const cb = "cb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
-    const s  = document.createElement("script");
-    const t  = setTimeout(() => { cleanup(); rej(new Error("Timeout (25s)")); }, 25000);
-    window[cb] = d => { cleanup(); res(d); };
-    function cleanup(){ clearTimeout(t); delete window[cb]; if(s.parentNode) s.parentNode.removeChild(s); }
-    s.onerror = () => { cleanup(); rej(new Error("Network error")); };
-    s.src = url + (url.includes("?")?"&":"?") + "callback=" + cb;
+  return new Promise((res,rej)=>{
+    const cb="cb_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    const s=document.createElement("script");
+    const t=setTimeout(()=>{cleanup();rej(new Error("Timeout (25s)"));},25000);
+    window[cb]=d=>{cleanup();res(d);};
+    function cleanup(){clearTimeout(t);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);}
+    s.onerror=()=>{cleanup();rej(new Error("Network error"));};
+    s.src=url+(url.includes("?")?"&":"?")+"callback="+cb;
     document.head.appendChild(s);
   });
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 // SUBMIT
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 async function doSubmit(){
-  const btn = document.getElementById("btn-submit");
-  btn.disabled = true;
+  const btn=document.getElementById("btn-submit");
+  btn.disabled=true;
+  if(S.trainingType==="Value") S.entValue=document.getElementById("value-input").value.trim();
 
-  if(S.trainingType === "Value") S.entValue = document.getElementById("value-input").value.trim();
-
-  const prog = document.getElementById("prog-wrap");
-  prog.style.display = "block";
-  setProgress(20, "Saving attendance with photo…");
+  const prog=document.getElementById("prog-wrap");
+  prog.style.display="block";
+  setProgress(20,"Saving attendance with photo...");
 
   const url = WEB_APP_URL
-    + "?action=attendance"
-    + "&uid="          + encodeURIComponent(S.uid            || "Unknown")
-    + "&name="         + encodeURIComponent(S.name           || "Unknown")
-    + "&trainerName="  + encodeURIComponent(S.trainer        || "Unknown")
-    + "&trainingName=" + encodeURIComponent(S.trainingName   || "Unknown")
-    + "&subTraining="  + encodeURIComponent(S.subTraining    || "")
-    + "&entValue="     + encodeURIComponent(S.entValue       || "")
-    + "&lat="          + encodeURIComponent(S.lat            || "0")
-    + "&lng="          + encodeURIComponent(S.lng            || "0")
-    + "&timestamp="    + encodeURIComponent(S.ts             || new Date().toLocaleString("en-IN"))
-    + "&driveFolder="  + encodeURIComponent(DRIVE_FOLDER)
-    + "&photo="        + encodeURIComponent(S.photoB64       || "");
+    +"?action=attendance"
+    +"&uid="          +encodeURIComponent(S.uid          ||"Unknown")
+    +"&name="         +encodeURIComponent(S.name         ||"Unknown")
+    +"&trainerName="  +encodeURIComponent(S.trainer      ||"Unknown")
+    +"&trainingName=" +encodeURIComponent(S.trainingName ||"Unknown")
+    +"&subTraining="  +encodeURIComponent(S.subTraining  ||"")
+    +"&entValue="     +encodeURIComponent(S.entValue     ||"")
+    +"&lat="          +encodeURIComponent(S.lat          ||"0")
+    +"&lng="          +encodeURIComponent(S.lng          ||"0")
+    +"&timestamp="    +encodeURIComponent(S.ts           ||new Date().toLocaleString("en-IN"))
+    +"&driveFolder="  +encodeURIComponent(DRIVE_FOLDER)
+    +"&photo="        +encodeURIComponent(S.photoB64     ||"");
 
-  try {
-    setProgress(50, "Waiting for server…");
-    const res = await jsonpFetch(url);
-    if(!res.success) throw new Error(res.error || "Server failure");
-    setProgress(100, "Saved! ✅");
+  try{
+    setProgress(50,"Waiting for server response...");
+    const res=await jsonpFetch(url);
+    if(!res.success) throw new Error(res.error||"Server failure");
+    setProgress(100,"Saved! ✅");
 
-    const dispName  = (S.name || "Friend").trim();
-    const trnDisp   = S.subTraining ? S.trainingName + " — " + S.subTraining : S.trainingName;
-    const dateStr   = S.ts ? S.ts.split(",")[0] : new Date().toLocaleDateString("en-IN");
+    const dispName = (S.name||"Friend").trim();
+    const trnDisp  = S.subTraining ? S.trainingName+" — "+S.subTraining : S.trainingName;
+    const dateStr  = S.ts ? S.ts.split(",")[0] : new Date().toLocaleDateString("en-IN");
 
-    setTimeout(() => {
-      prog.style.display = "none";
+    setTimeout(()=>{
+      prog.style.display="none";
       document.getElementById("submit-area").classList.remove("on");
-      document.querySelectorAll(".step").forEach(c => c.classList.remove("on"));
-      document.getElementById("hero").style.display = "none";
+      document.querySelectorAll(".step").forEach(c=>c.classList.remove("on"));
+      document.getElementById("hero").style.display="none";
 
-      const suc = document.getElementById("suc");
+      const suc=document.getElementById("suc");
       suc.classList.add("on");
-      window.scrollTo({top:0, behavior:"smooth"});
-      suc.innerHTML = `
+      window.scrollTo({top:0,behavior:"smooth"});
+      suc.innerHTML=`
         <div class="suc-icon">🎉</div>
         <div class="suc-head">Thank You, ${dispName}!</div>
         <div class="suc-body">
           Attendance recorded for<br>
-          <strong>${trnDisp.length>70 ? trnDisp.slice(0,70)+"…" : trnDisp}</strong><br>
+          <strong>${trnDisp.length>70?trnDisp.slice(0,70)+"…":trnDisp}</strong><br>
           on <strong>${dateStr}</strong>
         </div>
         <div style="margin-top:10px;font-size:12px;color:${res.photoUrl?"#1b5e20":"#C05621"}">
-          ${res.photoUrl ? "📷 Photo saved to Drive ✅" : "⚠️ Photo not saved"}
+          ${res.photoUrl?"📷 Photo saved to Drive ✅":"⚠️ Photo not saved"}
         </div>
         <div style="margin-top:20px">
           <button onclick="nextBeneficiary()" style="width:100%;padding:14px;background:#0B6EBB;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">
@@ -871,73 +821,69 @@ async function doSubmit(){
         </div>
         <div style="margin-top:12px;font-size:12px;color:var(--muted)">Trainer: <strong>${S.trainer}</strong></div>
       `;
-    }, 600);
+    },600);
 
-  } catch(e) {
-    prog.style.display = "none";
-    btn.disabled = false;
-    alert("❌ Error: " + e.message + "\n\nPlease check internet and try again.");
+  }catch(e){
+    prog.style.display="none";
+    btn.disabled=false;
+    alert("❌ Error: "+e.message+"\n\nPlease check internet and try again.");
   }
 }
 
-function setProgress(pct, lbl){
-  document.getElementById("prog-fill").style.width = pct + "%";
-  document.getElementById("prog-lbl").textContent  = lbl;
+function setProgress(pct,lbl){
+  document.getElementById("prog-fill").style.width=pct+"%";
+  document.getElementById("prog-lbl").textContent=lbl;
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 // NEXT BENEFICIARY
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════
 function nextBeneficiary(){
-  // Keep trainer, reset everything else
-  S.uid=""; S.name=""; S.shg=""; S.cln="";
-  S.trainingName=""; S.trainingType=""; S.subTraining=""; S.entValue="";
-  S.lat=null; S.lng=null; S.ts=""; S.photoB64=""; S.photoStream=null;
+  S.uid="";S.name="";S.shg="";S.cln="";
+  S.trainingName="";S.trainingType="";S.subTraining="";S.entValue="";
+  S.lat=null;S.lng=null;S.ts="";S.photoB64="";S.photoStream=null;
 
-  ["ben","sub"].forEach(w => {
-    if(SC[w]){ clearInterval(SC[w]); SC[w]=null; }
-    document.getElementById(w+"-live").style.display   = "none";
-    document.getElementById(w+"-shell").style.display  = "flex";
-    document.getElementById(w+"-err").style.display    = "none";
-    document.getElementById(w+"-manual").style.display = "none";
-    document.getElementById(w+"-mi").value             = "";
+  ["ben","trn","sub"].forEach(w=>{
+    if(SC[w]){clearInterval(SC[w]);SC[w]=null;}
+    document.getElementById(w+"-live").style.display  ="none";
+    document.getElementById(w+"-shell").style.display ="flex";
+    document.getElementById(w+"-err").style.display   ="none";
+    document.getElementById(w+"-manual").style.display="none";
+    document.getElementById(w+"-mi").value            ="";
     document.getElementById(w+"-result").classList.remove("on");
+    document.getElementById("btn-"+w).disabled=false;
+    document.getElementById("btn-"+w).textContent=btnLabel(w);
   });
-  document.getElementById("btn-ben").disabled = false;
-  document.getElementById("btn-ben").textContent = "📷 Scan Beneficiary QR";
-  document.getElementById("btn-sub").disabled = false;
-  document.getElementById("btn-sub").textContent = "📷 Scan Sub-Training QR";
 
-  document.getElementById("mh-name").textContent  = "—";
-  document.getElementById("mh-uid").textContent   = "Scan beneficiary QR to begin";
-  document.getElementById("mh-extra").textContent = "";
-  document.getElementById("hero").style.display   = "flex";
+  document.getElementById("mh-name").textContent ="—";
+  document.getElementById("mh-uid").textContent  ="Scan beneficiary QR to begin";
+  document.getElementById("mh-extra").textContent="";
+  document.getElementById("hero").style.display  ="flex";
 
-  document.getElementById("trn-search-input").value = "";
-  document.getElementById("trn-result").classList.remove("on");
-  document.getElementById("value-entry").style.display = "none";
-  document.getElementById("value-input").value = "";
+  document.getElementById("value-entry").style.display="none";
+  document.getElementById("value-input").value="";
+  document.getElementById("trn-badge").textContent="";
 
-  document.getElementById("img-preview").style.display  = "none";
-  document.getElementById("vid-preview").style.display  = "none";
-  document.getElementById("photo-note").style.display   = "none";
-  document.getElementById("btn-cam").style.display      = "inline-flex";
-  document.getElementById("btn-capture").style.display  = "none";
-  document.getElementById("btn-retake").style.display   = "none";
+  document.getElementById("img-preview").style.display="none";
+  document.getElementById("vid-preview").style.display="none";
+  document.getElementById("photo-note").style.display="none";
+  document.getElementById("btn-cam").style.display="inline-flex";
+  document.getElementById("btn-capture").style.display="none";
+  document.getElementById("btn-retake").style.display="none";
 
   document.getElementById("loc-box").classList.remove("ok");
-  document.getElementById("loc-txt").textContent = "Requesting GPS location…";
+  document.getElementById("loc-txt").textContent="Requesting location...";
 
-  document.getElementById("btn-submit").disabled = true;
+  document.getElementById("btn-submit").disabled=true;
   document.getElementById("suc").classList.remove("on");
   document.getElementById("submit-area").classList.remove("on");
-  document.getElementById("prog-wrap").style.display = "none";
-  document.getElementById("prog-fill").style.width   = "0%";
+  document.getElementById("prog-wrap").style.display="none";
+  document.getElementById("prog-fill").style.width="0%";
 
-  document.querySelectorAll(".step").forEach(c => c.classList.remove("on"));
+  document.querySelectorAll(".step").forEach(c=>c.classList.remove("on"));
   show("s1");
   getLocation();
-  window.scrollTo({top:0, behavior:"smooth"});
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 </script>
 </body>
