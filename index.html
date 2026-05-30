@@ -769,9 +769,9 @@ async function submitAttendance() {
   }
 
   try {
-    setProgress(30, "Saving attendance + photo...");
+    // ── STEP 1: Save attendance row (no photo) ──────────────────
+    setProgress(25, "Saving attendance...");
 
-    // ✅ Photo is included directly in this same URL
     const url = WEB_APP_URL
       + "?action=attendance"
       + "&uid="          + encodeURIComponent(state.uid          || "Unknown")
@@ -783,14 +783,35 @@ async function submitAttendance() {
       + "&entValue="     + encodeURIComponent(state.entValue     || "")
       + "&lat="          + encodeURIComponent(state.lat          || "0")
       + "&lng="          + encodeURIComponent(state.lng          || "0")
-      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"))
-      + "&photo="        + encodeURIComponent(state.photoBase64  || "");
+      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"));
 
     const res = await jsonpFetch(url);
     if (!res.success) throw new Error(res.error || "Failed to save attendance");
 
+    const rowNum = res.rowNum;
+
+    // ── STEP 2: Upload photo via POST (no URL limit) ────────────
+    if (state.photoBase64 && rowNum) {
+      setProgress(60, "Uploading photo...");
+      try {
+        await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "photo",
+            rowNum: rowNum,
+            uid:    state.uid,
+            photo:  state.photoBase64
+          })
+        });
+      } catch(photoErr) {
+        console.warn("Photo upload failed (attendance still saved):", photoErr);
+      }
+    }
+
     setProgress(100, "Done!");
 
+    // ── Success UI ──────────────────────────────────────────────
     const displayName = (state.name || "Friend").trim();
     const trnDisplay  = state.subTraining
       ? state.trainingName + " — " + state.subTraining
