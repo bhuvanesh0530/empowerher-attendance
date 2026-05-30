@@ -33,7 +33,6 @@
       margin-bottom: 14px; display: none; align-items: center; gap: 8px;
     }
     .trainer-badge.show { display: flex; }
-    /* ── CHANGE TRAINER link inside badge ── */
     .trainer-badge .change-link {
       margin-left: auto; font-size: 12px; color: #0b78ba;
       text-decoration: underline; cursor: pointer; font-weight: 600;
@@ -192,7 +191,7 @@
     </div>
   </div>
 
-  <!-- TRAINER BADGE — shown after step 0, stays visible all session -->
+  <!-- TRAINER BADGE -->
   <div class="trainer-badge" id="trainer-badge">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0C447C" stroke-width="2">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -202,7 +201,7 @@
     <span class="change-link" onclick="changeTrainer()">Change</span>
   </div>
 
-  <!-- STEP 0: TRAINER NAME — shown only once per session -->
+  <!-- STEP 0: TRAINER NAME -->
   <div class="step-card active" id="card-trainer">
     <div class="step-header">
       <div class="step-num">0</div>
@@ -416,7 +415,6 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyXBilYPA_Cg8ReLun1OYiDLxfiE46-gMfyDo_I8gk3fs-2PLmF8s166Hh6JTOyOB0R/exec";
 
 // ── STATE ──────────────────────────────────────────────────────────────────────
-// trainerName persists across beneficiaries — everything else resets
 const state = {
   trainerName:"",
   uid:"", name:"", shg:"", cln:"",
@@ -453,7 +451,6 @@ function showCard(id) {
 }
 
 // ── STEP 0: TRAINER NAME ───────────────────────────────────────────────────────
-// Called once at session start — or again if trainer taps "Change"
 function confirmTrainer() {
   const name = document.getElementById("trainer-name-input").value.trim();
   if (!name) { alert("Please enter your name."); return; }
@@ -464,7 +461,6 @@ function confirmTrainer() {
   showCard("card-beneficiary");
 }
 
-// Trainer taps "Change" — re-shows Step 0 without resetting beneficiary data
 function changeTrainer() {
   document.getElementById("trainer-name-input").value = state.trainerName;
   document.getElementById("card-trainer").classList.add("active");
@@ -717,10 +713,10 @@ async function openCamera() {
 function capturePhoto() {
   const v = document.getElementById("camera-preview");
   const c = document.createElement("canvas");
-  // 240x180 at 40% quality — keeps base64 under 25KB, safe for POST
-  c.width = 240; c.height = 180;
-  c.getContext("2d").drawImage(v, 0, 0, 240, 180);
-  const full = c.toDataURL("image/jpeg", 0.4);
+  // ✅ Small size + low quality = base64 stays under 12KB, safe for URL
+  c.width = 200; c.height = 150;
+  c.getContext("2d").drawImage(v, 0, 0, 200, 150);
+  const full = c.toDataURL("image/jpeg", 0.35);
   state.photoBase64 = full.split(",")[1];
 
   if (state.photoStream) state.photoStream.getTracks().forEach(t => t.stop());
@@ -760,9 +756,8 @@ function setProgress(pct, text) {
 }
 
 // ── SUBMIT ────────────────────────────────────────────────────────────────────
-// Step 1: Send all attendance data via JSONP GET (no photo — keeps URL short)
-// Step 2: Send photo via fetch POST using the row number from Step 1
-// This avoids the URL-too-long crash on Android Chrome.
+// ✅ FIXED: Everything sent in ONE JSONP GET call — photo included.
+// No more separate doPost — that was the reason Photo URL was blank.
 async function submitAttendance() {
   const btn = document.getElementById("btn-submit");
   const msg = document.getElementById("status-msg");
@@ -774,9 +769,9 @@ async function submitAttendance() {
   }
 
   try {
-    // ── STEP 1: Save attendance row (no photo) ──────────────
-    setProgress(20, "Saving attendance...");
+    setProgress(30, "Saving attendance + photo...");
 
+    // ✅ Photo is included directly in this same URL
     const url = WEB_APP_URL
       + "?action=attendance"
       + "&uid="          + encodeURIComponent(state.uid          || "Unknown")
@@ -788,36 +783,11 @@ async function submitAttendance() {
       + "&entValue="     + encodeURIComponent(state.entValue     || "")
       + "&lat="          + encodeURIComponent(state.lat          || "0")
       + "&lng="          + encodeURIComponent(state.lng          || "0")
-      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"));
+      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"))
+      + "&photo="        + encodeURIComponent(state.photoBase64  || "");
 
     const res = await jsonpFetch(url);
     if (!res.success) throw new Error(res.error || "Failed to save attendance");
-
-    const rowNum = res.rowNum || 0;
-
-    // ── STEP 2: Upload photo via POST (separate, safe) ──────
-    setProgress(60, "Uploading photo...");
-    if (state.photoBase64 && rowNum > 0) {
-      try {
-        await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({
-            action: "photo",
-            rowNum: rowNum,
-            uid:    state.uid || "unknown",
-            photo:  state.photoBase64
-          })
-        });
-        // fetch to Apps Script always gets a network-level response
-        // Apps Script handles the save — we don't need to read the response body
-      } catch(photoErr) {
-        // Photo upload failed — attendance row is already saved, just no photo
-        console.warn("Photo upload failed (attendance still saved):", photoErr.message);
-      }
-    }
-
-    setProgress(100, "Done!");
 
     setProgress(100, "Done!");
 
@@ -865,28 +835,21 @@ async function submitAttendance() {
 }
 
 // ── NEXT BENEFICIARY ──────────────────────────────────────────────────────────
-// Trainer name is KEPT. Only beneficiary-specific data resets.
-// Goes straight to Step 1 — trainer never re-enters name.
 function nextBeneficiary() {
-
-  // Reset only beneficiary-specific state — trainerName stays
   state.uid = ""; state.name = ""; state.shg = ""; state.cln = "";
   state.trainingName = ""; state.trainingType = ""; state.subTraining = ""; state.entValue = "";
   state.lat = null; state.lng = null; state.timestamp = "";
   state.photoBase64 = ""; state.photoStream = null;
 
-  // Stop any active scanners
   ["ben","trn","sub"].forEach(w => {
     if (scanners[w]) { try { scanners[w].stop(); } catch(e) {} scanners[w] = null; }
   });
 
-  // Reset info card display
   document.getElementById("display-name").textContent  = "—";
   document.getElementById("display-uid").textContent   = "Scan beneficiary QR to begin";
   document.getElementById("display-extra").textContent = "";
   document.getElementById("info-card").style.display   = "flex";
 
-  // Reset submit button and status
   const msg = document.getElementById("status-msg");
   msg.style.display = "none"; msg.className = "status-msg";
   const btn = document.getElementById("btn-submit");
@@ -894,7 +857,6 @@ function nextBeneficiary() {
   btn.disabled = true; btn.textContent = "✅ Submit Attendance";
   document.getElementById("progress-bar").style.display = "none";
 
-  // Reset all QR scan cards
   ["ben","trn","sub"].forEach(w => {
     document.getElementById(w+"-scan-result").classList.remove("show");
     document.getElementById(w+"-qr-wrap").style.display   = "none";
@@ -910,23 +872,17 @@ function nextBeneficiary() {
   document.getElementById("value-input-box").style.display = "none";
   document.getElementById("value-input").value = "";
 
-  // Reset photo
   document.getElementById("photo-preview").style.display   = "none";
   document.getElementById("camera-preview").style.display  = "none";
   document.getElementById("btn-open-camera").style.display = "inline-flex";
   document.getElementById("btn-capture").style.display     = "none";
   document.getElementById("btn-retake").style.display      = "none";
 
-  // Reset GPS display (re-fetch fresh location)
   document.getElementById("loc-status").classList.remove("success");
   document.getElementById("loc-text").textContent = "Requesting location...";
 
-  // Hide all step cards — show Step 1 directly (NOT Step 0)
   document.querySelectorAll(".step-card").forEach(c => c.classList.remove("active"));
-  showCard("card-beneficiary"); // ← Trainer skips straight to here
-
-  // Trainer badge stays visible throughout
-  // (already showing from first confirmTrainer() call)
+  showCard("card-beneficiary");
 
   getLocation();
   window.scrollTo({top:0, behavior:"smooth"});
