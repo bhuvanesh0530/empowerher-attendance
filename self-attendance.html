@@ -757,20 +757,18 @@ async function submitAttendance() {
     const rowNum = res.rowNum || 0;
 
     setProgress(60, "Uploading photo...");
-    if (state.photoBase64 && rowNum > 0) {
+    if (state.photoBase64 && rowNum) {
+      setProgress(60, "Uploading photo...");
       try {
-        await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({
-            action: "photo",
-            rowNum: rowNum,
-            uid:    state.uid || "unknown",
-            photo:  state.photoBase64
-          })
-        });
+        await jsonpFetch(
+          WEB_APP_URL
+          + "?action=photo"
+          + "&rowNum=" + encodeURIComponent(rowNum)
+          + "&uid="    + encodeURIComponent(state.uid || "unknown")
+          + "&photo="  + encodeURIComponent(state.photoBase64)
+        );
       } catch(photoErr) {
-        console.warn("Photo upload failed (attendance still saved):", photoErr.message);
+        console.warn("Photo upload failed (attendance still saved):", photoErr);
       }
     }
 
