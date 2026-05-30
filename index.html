@@ -428,7 +428,7 @@ function jsonpFetch(url) {
   return new Promise((resolve, reject) => {
     const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*9999);
     const s  = document.createElement("script");
-    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 25000);
+    const t  = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 30000);
     window[cb] = d => { cleanup(); resolve(d); };
     function cleanup() {
       clearTimeout(t); delete window[cb];
@@ -713,10 +713,10 @@ async function openCamera() {
 function capturePhoto() {
   const v = document.getElementById("camera-preview");
   const c = document.createElement("canvas");
-  // ✅ Small size + low quality = base64 stays under 12KB, safe for URL
-  c.width = 200; c.height = 150;
-  c.getContext("2d").drawImage(v, 0, 0, 200, 150);
-  const full = c.toDataURL("image/jpeg", 0.35);
+  // ✅ Keep very small so base64 fits safely in GET URL (~8KB max)
+  c.width = 160; c.height = 120;
+  c.getContext("2d").drawImage(v, 0, 0, 160, 120);
+  const full = c.toDataURL("image/jpeg", 0.5);
   state.photoBase64 = full.split(",")[1];
 
   if (state.photoStream) state.photoStream.getTracks().forEach(t => t.stop());
@@ -756,8 +756,9 @@ function setProgress(pct, text) {
 }
 
 // ── SUBMIT ────────────────────────────────────────────────────────────────────
-// ✅ FIXED: Everything sent in ONE JSONP GET call — photo included.
-// No more separate doPost — that was the reason Photo URL was blank.
+// ✅ FIX: Photo is included in the SAME GET request as attendance data.
+//    The backend's doGet "attendance" action already handles p.photo correctly.
+//    No separate POST needed — this ensures Photo URL is always written to the row.
 async function submitAttendance() {
   const btn = document.getElementById("btn-submit");
   const msg = document.getElementById("status-msg");
@@ -769,9 +770,11 @@ async function submitAttendance() {
   }
 
   try {
-    // ── STEP 1: Save attendance row (no photo) ──────────────────
-    setProgress(25, "Saving attendance...");
+    setProgress(30, "Saving & uploading photo...");
 
+    // ✅ Send everything including photo in ONE JSONP GET request.
+    //    Backend doGet "attendance" action saves photo to Drive and writes
+    //    the URL into the same row atomically — no race condition possible.
     const url = WEB_APP_URL
       + "?action=attendance"
       + "&uid="          + encodeURIComponent(state.uid          || "Unknown")
@@ -783,35 +786,15 @@ async function submitAttendance() {
       + "&entValue="     + encodeURIComponent(state.entValue     || "")
       + "&lat="          + encodeURIComponent(state.lat          || "0")
       + "&lng="          + encodeURIComponent(state.lng          || "0")
-      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"));
+      + "&timestamp="    + encodeURIComponent(state.timestamp    || new Date().toLocaleString("en-IN"))
+      + "&photo="        + encodeURIComponent(state.photoBase64  || ""); // ✅ KEY FIX
 
     const res = await jsonpFetch(url);
     if (!res.success) throw new Error(res.error || "Failed to save attendance");
 
-    const rowNum = res.rowNum;
-
-    // ── STEP 2: Upload photo via POST ────────────
-    if (state.photoBase64 && rowNum) {
-      setProgress(60, "Uploading photo...");
-      try {
-        await fetch(WEB_APP_URL, {
-          method: "POST",
-          mode:   "no-cors",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({
-            action: "photo",
-            rowNum: rowNum,
-            uid:    state.uid,
-            photo:  state.photoBase64
-          })
-        });
-      } catch(photoErr) {
-        console.warn("Photo upload failed (attendance still saved):", photoErr);
-      }
-    }
     setProgress(100, "Done!");
 
-    // ── Success UI ──────────────────────────────────────────────
+    // ── Success UI ──────────────────────────────────────────────────────────
     const displayName = (state.name || "Friend").trim();
     const trnDisplay  = state.subTraining
       ? state.trainingName + " — " + state.subTraining
@@ -819,6 +802,7 @@ async function submitAttendance() {
     const dateStr = state.timestamp
       ? state.timestamp.split(",")[0].trim()
       : new Date().toLocaleDateString("en-IN");
+    const photoSaved = res.photoUrl ? "📸 Photo saved." : "⚠️ Photo not saved (low quality or missing).";
 
     setTimeout(() => {
       document.getElementById("progress-bar").style.display = "none";
@@ -837,6 +821,7 @@ async function submitAttendance() {
           "Attendance for <strong>" + trnDisplay + "</strong><br>" +
           "on <strong>" + dateStr + "</strong> has been saved." +
         "</div>" +
+        "<div style='margin-top:8px;font-size:12px;color:#555;'>" + photoSaved + "</div>" +
         "<div style='margin-top:20px;'>" +
           "<button onclick='nextBeneficiary()' style='background:#0b78ba;color:white;border:none;" +
           "border-radius:8px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%;'>" +
